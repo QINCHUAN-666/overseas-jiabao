@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>价保周期判定工具</title>
+<style>
+body {font-family:"Helvetica Neue",Arial,sans-serif;background:#f8f9fa;color:#333;margin:0;padding:0;}
+/* 顶栏样式升级版 */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end; /* 或 center，看你想要的垂直对齐方式 */
+  padding: 28px 20px 16px;
+  background: linear-gradient(to bottom, #ffffff, #f7f9fb);
+  border-bottom: none; /* 去掉底部边框 */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  
+  max-width: 600px; /* 和下面 main 一样的宽度 */
+  margin: 0 auto;    /* 居中 */
+}
+
+h1 {
+  margin: 0;
+  font-weight: 400;
+  font-size: 1.4rem;
+  color: #333;
+}
+
+.lang-switch select {
+  padding: 6px 12px;
+  font-size: 0.95em;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: transparent;
+  color: #333;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.lang-switch select:hover {
+  border-color: #007bff;
+}
+
+
+input[type="date"] {
+    box-sizing: border-box;  /* 确保 padding 和边框都计算在总宽度里 */
+    padding: 10px;            /* 和其他 input/select 一致 */
+}
+
+/* 标签页样式升级版 */
+.tab-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tab {
+  padding: 8px 18px;
+  cursor: pointer;
+  border-radius: 18px;
+  background: transparent;
+  border: 1px solid #ccc;
+  color: #555;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.tab.active {
+  background: #007bff;
+  border-color: #007bff;
+  color: #fff;
+}
+main {max-width:600px;margin:30px auto;padding:20px;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.form-group {margin-bottom:20px;}
+label {display:block;margin-bottom:8px;font-weight:500;}
+input,select,button {width:100%;padding:10px;font-size:1em;border:1px solid #ccc;border-radius:6px;}
+button {background:#007bff;color:white;border:none;cursor:pointer;}
+button:hover {background:#0056b3;}
+#result {margin-top:30px;}
+#result > div {background:#f1f3f5;padding:15px;margin-bottom:10px;border-radius:6px;}
+.hidden {display:none;}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1 id="header-title">价保周期判定工具</h1>
+    <div class="tab-container">
+      <div class="tab active" data-tab="main" id="tab-main">价保方案</div>
+      <div class="tab" data-tab="special" id="tab-special">特殊场景</div>
+    </div>
+  </div>
+  <div class="lang-switch">
+    <select id="language">
+      <option value="zh">简体中文</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+</header>
+
+<main>
+  <!-- 主功能 -->
+  <div id="main-content">
+    <div class="form-group">
+      <label for="country" id="label-country">国家/地区</label>
+      <select id="country"></select>
+    </div>
+    
+    <div class="form-group">
+      <label for="channel" id="label-channel">购买渠道</label>
+      <select id="channel"></select>
+    </div>
+
+
+<div id="link-display" style="margin-bottom:15px;"></div>
+
+<div class="form-group">
+  <label for="isActivityPeriod" id="label-isActivityPeriod">产品是否还在活动期</label>
+  <select id="isActivityPeriod">
+    <option value="yes">在活动期内</option>
+    <option value="no">活动已结束</option>
+  </select>
+</div>
+
+    <div class="form-group">
+      <label for="deliver-date" id="label-deliver-date">客户签收时间</label>
+      <input type="date" id="deliver-date">
+    </div>
+    
+    <div class="form-group">
+      <label for="apply-date" id="label-apply-date">申请价保时间</label>
+      <input type="date" id="apply-date">
+    </div>
+
+
+    <button id="calculate">判定价保周期</button>
+
+    <section id="result" class="hidden">
+      <h2 id="result-title">结果</h2>
+      <div id="policy"></div>
+      <div id="thought"></div>
+      <div id="script"></div>
+    </section>
+  </div>
+
+  <!-- 特殊场景 -->
+  <div id="special-content" class="hidden">
+    <div class="form-group">
+      <label for="special-country" id="label-special-country">国家/地区</label>
+      <select id="special-country"></select>
+    </div>
+    <div id="special-display">
+      <!-- 特殊场景会根据语言/国家显示 -->
+    </div>
+  </div>
+</main>
+
+<script>
+/* 配置结构：
+   1. tabs: 多语言tab标题
+   2. countries: 国家列表
+   3. channels: 每国的购买渠道列表
+   4. activity: 每国的活动时间
+   5. rules: 每国周期阈值
+   6. policies: 每国/渠道政策
+   7. specialCases: 特殊场景不同国家的文案/说明
+*/
+window.priceProtectConfig = {
+  zh: {
+    tabs: { main: "价保方案", special: "其他场景FAQ" },
+    countries: ["中国港澳台"],
+    channels: {
+      "中国港澳台": ["线上官方商城", "其他渠道"],
+    },
+    activity: {
+      "中国港澳台": { start: "2025-11-01", end: "2025-11-12" },
+    },
+    rules: {
+      "中国港澳台": { thresholds: [7, 30] },
+    },
+
+    links: {
+      "中国港澳台": "https://docs.djicorp.com/weboffice/l/shYEp8S5foirW?linkname=11",
+    },
+
+
+    policies: {
+      "线上官方商城": {
+within7: { 
+  policy: "补 DJI币 or 退现金差价", 
+  thought: `
+    <div style="font-family:Arial, 'Microsoft YaHei'; line-height:1.6;">
+      <strong style="color:#0066cc; font-size:1.1em;">方案二选一：</strong>
+      <ol style="margin:8px 0 12px 20px; padding:0;">
+        <li style="background-color:#fff3cd; padding:2px 4px; border-radius:4px;">
+          提供差价对应的 <strong>DJI币</strong>
+        </li>
+        <li style="background-color:#d4edda; padding:2px 4px; border-radius:4px;">
+          创建 CRM 案例安排仅退款退差价（<strong>现金</strong>）
+        </li>
+      </ol>
+    </div>
+  `,
+  script: `
+
+      <strong style="color:#0066cc; font-size:1.1em;">参考话术：</strong>
+<div style="font-family:Arial, 'Microsoft YaHei'; line-height:1.6;">
+  <p>
+    尊敬的 <span style="background-color:#fff3cd;">XXX</span>，感谢您的信任，请您放心！<br>
+    我们可以为您提供 <strong style="color:#17a2b8;">差价等值的 DJI币</strong> 或
+    <strong style="color:#ffc107;">现金退差</strong>。<br>
+    请问您倾向于 <span style="background-color:#fff3cd;">DJI币</span> 还是
+    <span style="background-color:#d4edda;">现金退差</span> 呢？
+  </p>
+
+  <p style="margin:6px 0;">
+    <strong>补偿DJI币：</strong> DJI币可用于购买 DJI 官方商城的任意商品（不含运费），DJI币将在订单收货后约 15 天生效。您可以届时访问  
+    <a href="https://my.dji.com/credit" target="_blank" style="color:#0066cc;">查看您的DJI币余额</a> 。
+  </p>
+
+  <p style="margin:6px 0;">
+    <strong>现金退差说明：</strong> 差价会在 2-7 个工作日原路退回至您的支付账户。
+  </p>
+
+  <p style="color:#6c757d; font-size:0.9em;">
+    注：如后续发生退货，退货退款时将会扣除 DJI币补偿或差价部分。
+  </p>
+</div>
+  `
+},
+within30: { 
+  policy: "① 婉拒<br>② 灰度补偿DJI币<br>③退货重拍",   
+
+  thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#dc3545;">1. 婉拒客户诉求</strong><br>
+  参考话术：尊敬的 <span style="background-color:#fff3cd;">XXX</span>，如果您在DJI 官方商城购买的商品，自订单签收之日起7个自然日内降价，我们将向您提供差价补偿。
+  由于您的订单已付款超过7天，因此不在补偿政策范围内。<span style="color:#dc3545;">很抱歉给您带来不便，感谢您的理解。</span></p>
+
+  <p><strong style="color:#28a745;">2. 客户不接受，可参考降价明细提供对应补偿：</strong><br>
+  <a href="https://docs.djicorp.com/weboffice/l/shYEp8S5foirW?linkname=1" target="_blank">https://docs.djicorp.com/weboffice/l/shYEp8S5foirW?linkname=1</a>
+
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/776daa3ca0fc4e1582a9042dfce88d34.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+  参考话术：非常理解您的期望，为了感谢您对我们的支持，这边<strong style="color:#17a2b8;">特殊为您申请了XXX DJI币</strong>。DJI币可用于购买DJI 官方商城的任意商品（不含运费），DJI币将在订单收货后约15天生效，请访问
+  <a href="https://my.dji.com/credit" target="_blank">查看您的DJI积分余额</a>，感谢您的理解~<br>
+  <span style="color:#6c757d;">注：如后续发生退货，退货退款时将会扣除DJI币补偿部分</span></p>
+
+  <p><strong style="color:#ffc107;">3. 如客户不接受DJI币，客户可退货重拍（需符合退货政策）</strong><br>
+  参考话术：同为消费者非常理解您的心情，如您的产品符合店铺退货要求，您这边可以申请退货退款，再重新以活动价购买，您看看这样可以吗？的确是麻烦您了~</p>
+
+  <p><strong style="color:#6c757d;">4. 如客户不接受DJI币及退货，无其他补充方案</strong><br>
+  参考话术：非常抱歉没有达到您的预期。的确是您的订单已超过了店铺的价保周期，不支持提供对应的差价补偿，还请您理解呢。<br>
+  活动是不定期举行的，我们也非常希望您能以优惠的价格购买到商品，的确目前您的订单因超过价保时效，无法再进行价保，我已尽最大努力为您争取到了XXX DJI 币，还请您再考虑下。</p>
+</div>
+  `,
+
+  script: `
+<strong>若客户不接受相关方案或政策解释：</strong><br><br>
+【处理原则】<br>
+1. 如遇到明确表示恶意霸线场景（霸线 ≥15 分钟），按如下思路和沟通节奏处理，然后走礼貌挂机流程（需报备TL审批，TL审批后登记至：
+<a href="https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1" target="_blank">https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1</a>）。<br>
+2. 升级客诉规范：<br>
+① 无风险场景尽量拦截，按照话术及方案澄清价保原则，告知有方案/无方案，不升级客诉。<br>
+② 如遇如下场景，可升级客诉处理（注：搜集客户姓名、电话、及客户信息升级客诉；客诉标签选择：电商-活动争议）。<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+【参考话术】<br>
+<strong>第一次沟通：</strong>您的心情我完全理解，确实超出活动价保周期的情况会让您感到难受，但也帮您核查到由于您的订单已超过价保政策时间，很抱歉无法满足您的需求，辛苦您谅解。<br><br>
+<strong>第二次主导沟通：</strong>非常理解您的心情，这边看到您的订单时间是<span style="background-color:#fff3cd;">XX</span>。您提前购买了产品，也能记录更多独一无二的精彩时刻。但这个订单已经超出活动价保时效了，抱歉确实无法为您提供价保服务。<br><br>
+<strong>第三次礼貌挂机：</strong>我们非常希望能协助您解决问题，但目前您的订单因超过价保时效，无法再进行价保，我已尽最大努力为您争取到了<span style="background-color:#d4edda;">XXX DJI 币</span>，衷心希望您可以理解。如果您后续还有其他问题，欢迎您随时联系我们。先不打扰您了，祝您生活愉快，再见。
+  `
+},
+over30: { 
+  policy: "无补发方案",  
+
+  thought: `
+  <p><strong style="color:#6c757d;">参考话术：</strong><br>
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#dc3545;">1.</strong> 尊敬的 <span style="background-color:#fff3cd;">XXX</span>，如果您在DJI 官方商城购买的商品，自订单签收之日起7个自然日内降价，我们将向您提供差价补偿。由于您的订单已付款超过7天，因此不在补偿政策范围内。<span style="color:#dc3545;">很抱歉给您带来不便，感谢您的理解。</span></p>
+
+  <p><strong style="color:#dc3545;">2.</strong> 非常抱歉没有达到您的预期。的确是您的订单已超过了店铺的价保周期，不支持提供对应的差价补偿，还请您理解呢。</p>
+
+  <p><strong style="color:#dc3545;">3.</strong> 活动是不定期举行的，我们也非常希望您能以优惠的价格购买到商品，的确目前您的订单因超过价保时效，无法再进行价保，衷心希望您可以理解。</p>
+</div>
+  `,
+
+  script: `
+<strong>若客户不接受相关方案或政策解释：</strong><br><br>
+【处理原则】<br>
+1. 如遇到明确表示恶意霸线场景（霸线 ≥15 分钟），按如下思路和沟通节奏处理，然后走礼貌挂机流程（需报备TL审批，TL审批后登记至：
+<a href="https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1" target="_blank">https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1</a>）。<br>
+2. 升级客诉规范：<br>
+① 无风险场景尽量拦截，按照话术及方案澄清价保原则，告知有方案/无方案，不升级客诉。<br>
+② 如遇如下场景，可升级客诉处理（注：搜集客户姓名、电话、及客户信息升级客诉；客诉标签选择：电商-活动争议）。<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+【参考话术】<br>
+<strong>第一次沟通：</strong><span style="background-color:#fff3cd;">XX先生/女士</span>，您的心情我完全理解，确实超出活动价保周期的情况会让您感到难受，但也帮您核查到由于您的订单已超过价保政策时间太久，所以也遗憾无法为您提供价保服务或退差价，辛苦您谅解。<br><br>
+
+<strong>第二次主导沟通：</strong>非常理解您的心情，这边看到您的订单时间是<span style="background-color:#fff3cd;">XX</span>。您提前购买了产品，也能记录更多独一无二的精彩时刻。但这个订单已经超出活动价保时效很长时间了，抱歉确实无法为您提供价保服务或退差价。<br><br>
+
+<strong>第三次礼貌挂机：</strong>我们非常希望能协助您解决问题，但目前您的订单因超过价保时效很久，无法再进行价保，衷心希望您可以理解。如果您后续还有其他问题，欢迎您随时联系我们。先不打扰您了，祝您生活愉快，再见。
+  `
+},
+afterActivity: { 
+  policy: "若客户要求价保，婉拒需求，有风险的升级客诉",  
+
+  thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#dc3545;">婉拒话术1：</strong><br>
+  您好，非常感谢您对我们产品的支持，了解到您描述的价保问题，由于<strong>活动已经结束</strong>，目前商品价格未发生变化，是不支持价保的呢，还请您谅解。</p>
+
+  <p><strong style="color:#dc3545;">婉拒话术2：</strong><br>
+  活动已经结束，这次确实无法为您提供价保补偿，但您购买的产品我们依然会持续为您提供其他优质的服务和保障，希望能够得到您的理解。
+  如果您在使用产品过程中有任何问题，欢迎随时联系我们，我们会竭诚为您解决。</p>
+</div>
+  `,
+
+  script: `
+<strong>如遇如下场景，可升级客诉处理</strong><br>
+<span style="color:#6c757d; font-size:0.9em;">注：搜集客户姓名、电话、及客户信息升级客诉；客诉标签选择：电商-活动争议。</span>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+  `
+}
+      },
+      "其他渠道": {
+  within7: { 
+    policy: "无价保（仅内部知悉） 引导客户与购买方沟通确认",  
+
+    thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#6c757d;">说明：</strong> 不同渠道的价保、补偿、优惠等可能有差异，需要客户联系对应卖家沟通确认。</p>
+  <p><strong style="color:#0066cc;">参考话术：</strong><br>
+    您好，查询到您的产品不是从线上官方商城购买，为了确保您能享受到最佳的售后服务和保障，我们建议您先联系卖家进行咨询和处理。感谢您的理解。
+  </p>
+</div>
+    `,
+
+    script: `
+<strong>若客户不接受相关方案或政策解释：</strong><br><br>
+
+<strong>【处理思路】</strong><br>
+不同渠道活动方案可能有差异，需要引导客户联系卖家沟通解决。<br>
+针对降价 & 价保问题，若客户投诉代理商（如服务态度、服务质量等），请搜集相关信息，在GT专群【手持海外活动线上线下联动】反馈代理商接口人。<br><br>
+
+<strong>搜集信息模板：</strong><br>
+【代理商】：<br>
+【客户购买产品型号】：<br>
+【产品SN】：<br>
+【姓名】：<br>
+【联系方式】：电话/邮箱<br>
+【购买凭证】：<br><br>
+
+<strong>【非官方商城价保问题 处理原则】</strong><br>
+1. 如遇到明确表示恶意霸线场景（霸线 ≥15 分钟），按如下思路和沟通节奏处理，然后走礼貌挂机流程（需报备TL审批，TL审批后登记至：
+<a href="https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1" target="_blank">https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1</a>）。<br>
+2. 升级客诉规范：<br>
+① 无风险场景尽量拦截，按照话术及方案澄清价保原则，告知有方案/无方案，不升级客诉。<br>
+② 如遇如下场景，可升级客诉处理（注：搜集客户姓名、电话、及客户信息升级客诉；客诉标签选择：电商-活动争议）。<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+<strong>【参考话术】</strong><br>
+<strong>第一次沟通：</strong>XX先生/女士，抱歉给您带来不好的体验，这边看到您不是从线上官方渠道购买的产品，不同渠道在活动方案上（价保、优惠等）可能会有一些差异，具体还是得麻烦您和卖家进行沟通。<br><br>
+<strong>第二次主导沟通：</strong>您可以先联系卖家，请工作人员结合实际情况和您沟通。我们也是希望您咨询的问题能得到尽快处理，所以建议您和卖家直接联系，这样能尽量节省您的时间。<br><br>
+<strong>第三次礼貌挂机：</strong>明白您的诉求，我们也非常希望能协助您。但非官方渠道购买的产品，我们确实无法为您处理价保需求。还是麻烦您和卖家直接联系。如果您后续还有其他问题，欢迎您随时联系我们。先不打扰您了，祝您生活愉快，再见。
+    `
+  },
+        within30: {     policy: "无价保（仅内部知悉） 引导客户与购买方沟通确认",  
+
+    thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#6c757d;">说明：</strong> 不同渠道的价保、补偿、优惠等可能有差异，需要客户联系对应卖家沟通确认。</p>
+  <p><strong style="color:#0066cc;">参考话术：</strong><br>
+    您好，查询到您的产品不是从线上官方商城购买，为了确保您能享受到最佳的售后服务和保障，我们建议您先联系卖家进行咨询和处理。感谢您的理解。
+  </p>
+</div>
+    `,
+
+    script: `
+<strong>若客户不接受相关方案或政策解释：</strong><br><br>
+
+<strong>【处理思路】</strong><br>
+不同渠道活动方案可能有差异，需要引导客户联系卖家沟通解决。<br>
+针对降价 & 价保问题，若客户投诉代理商（如服务态度、服务质量等），请搜集相关信息，在GT专群【手持海外活动线上线下联动】反馈代理商接口人。<br><br>
+
+<strong>搜集信息模板：</strong><br>
+【代理商】：<br>
+【客户购买产品型号】：<br>
+【产品SN】：<br>
+【姓名】：<br>
+【联系方式】：电话/邮箱<br>
+【购买凭证】：<br><br>
+
+<strong>【非官方商城价保问题 处理原则】</strong><br>
+1. 如遇到明确表示恶意霸线场景（霸线 ≥15 分钟），按如下思路和沟通节奏处理，然后走礼貌挂机流程（需报备TL审批，TL审批后登记至：
+<a href="https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1" target="_blank">https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1</a>）。<br>
+2. 升级客诉规范：<br>
+① 无风险场景尽量拦截，按照话术及方案澄清价保原则，告知有方案/无方案，不升级客诉。<br>
+② 如遇如下场景，可升级客诉处理（注：搜集客户姓名、电话、及客户信息升级客诉；客诉标签选择：电商-活动争议）。<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+<strong>【参考话术】</strong><br>
+<strong>第一次沟通：</strong>XX先生/女士，抱歉给您带来不好的体验，这边看到您不是从线上官方渠道购买的产品，不同渠道在活动方案上（价保、优惠等）可能会有一些差异，具体还是得麻烦您和卖家进行沟通。<br><br>
+<strong>第二次主导沟通：</strong>您可以先联系卖家，请工作人员结合实际情况和您沟通。我们也是希望您咨询的问题能得到尽快处理，所以建议您和卖家直接联系，这样能尽量节省您的时间。<br><br>
+<strong>第三次礼貌挂机：</strong>明白您的诉求，我们也非常希望能协助您。但非官方渠道购买的产品，我们确实无法为您处理价保需求。还是麻烦您和卖家直接联系。如果您后续还有其他问题，欢迎您随时联系我们。先不打扰您了，祝您生活愉快，再见。
+    ` },
+        over30: {     policy: "无价保（仅内部知悉） 引导客户与购买方沟通确认",  
+
+    thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#6c757d;">说明：</strong> 不同渠道的价保、补偿、优惠等可能有差异，需要客户联系对应卖家沟通确认。</p>
+  <p><strong style="color:#0066cc;">参考话术：</strong><br>
+    您好，查询到您的产品不是从线上官方商城购买，为了确保您能享受到最佳的售后服务和保障，我们建议您先联系卖家进行咨询和处理。感谢您的理解。
+  </p>
+</div>
+    `,
+
+    script: `
+<strong>若客户不接受相关方案或政策解释：</strong><br><br>
+
+<strong>【处理思路】</strong><br>
+不同渠道活动方案可能有差异，需要引导客户联系卖家沟通解决。<br>
+针对降价 & 价保问题，若客户投诉代理商（如服务态度、服务质量等），请搜集相关信息，在GT专群【手持海外活动线上线下联动】反馈代理商接口人。<br><br>
+
+<strong>搜集信息模板：</strong><br>
+【代理商】：<br>
+【客户购买产品型号】：<br>
+【产品SN】：<br>
+【姓名】：<br>
+【联系方式】：电话/邮箱<br>
+【购买凭证】：<br><br>
+
+<strong>【非官方商城价保问题 处理原则】</strong><br>
+1. 如遇到明确表示恶意霸线场景（霸线 ≥15 分钟），按如下思路和沟通节奏处理，然后走礼貌挂机流程（需报备TL审批，TL审批后登记至：
+<a href="https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1" target="_blank">https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1</a>）。<br>
+2. 升级客诉规范：<br>
+① 无风险场景尽量拦截，按照话术及方案澄清价保原则，告知有方案/无方案，不升级客诉。<br>
+② 如遇如下场景，可升级客诉处理（注：搜集客户姓名、电话、及客户信息升级客诉；客诉标签选择：电商-活动争议）。<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+<strong>【参考话术】</strong><br>
+<strong>第一次沟通：</strong>XX先生/女士，抱歉给您带来不好的体验，这边看到您不是从线上官方渠道购买的产品，不同渠道在活动方案上（价保、优惠等）可能会有一些差异，具体还是得麻烦您和卖家进行沟通。<br><br>
+<strong>第二次主导沟通：</strong>您可以先联系卖家，请工作人员结合实际情况和您沟通。我们也是希望您咨询的问题能得到尽快处理，所以建议您和卖家直接联系，这样能尽量节省您的时间。<br><br>
+<strong>第三次礼貌挂机：</strong>明白您的诉求，我们也非常希望能协助您。但非官方渠道购买的产品，我们确实无法为您处理价保需求。还是麻烦您和卖家直接联系。如果您后续还有其他问题，欢迎您随时联系我们。先不打扰您了，祝您生活愉快，再见。
+    ` },
+        afterActivity:{     policy: "无价保（仅内部知悉） 引导客户与购买方沟通确认",  
+
+    thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#6c757d;">说明：</strong> 不同渠道的价保、补偿、优惠等可能有差异，需要客户联系对应卖家沟通确认。</p>
+  <p><strong style="color:#0066cc;">参考话术：</strong><br>
+    您好，查询到您的产品不是从线上官方商城购买，为了确保您能享受到最佳的售后服务和保障，我们建议您先联系卖家进行咨询和处理。感谢您的理解。
+  </p>
+</div>
+    `,
+
+    script: `
+<strong>若客户不接受相关方案或政策解释：</strong><br><br>
+
+<strong>【处理思路】</strong><br>
+不同渠道活动方案可能有差异，需要引导客户联系卖家沟通解决。<br>
+针对降价 & 价保问题，若客户投诉代理商（如服务态度、服务质量等），请搜集相关信息，在GT专群【手持海外活动线上线下联动】反馈代理商接口人。<br><br>
+
+<strong>搜集信息模板：</strong><br>
+【代理商】：<br>
+【客户购买产品型号】：<br>
+【产品SN】：<br>
+【姓名】：<br>
+【联系方式】：电话/邮箱<br>
+【购买凭证】：<br><br>
+
+<strong>【非官方商城价保问题 处理原则】</strong><br>
+1. 如遇到明确表示恶意霸线场景（霸线 ≥15 分钟），按如下思路和沟通节奏处理，然后走礼貌挂机流程（需报备TL审批，TL审批后登记至：
+<a href="https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1" target="_blank">https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA?linkname=1</a>）。<br>
+2. 升级客诉规范：<br>
+① 无风险场景尽量拦截，按照话术及方案澄清价保原则，告知有方案/无方案，不升级客诉。<br>
+② 如遇如下场景，可升级客诉处理（注：搜集客户姓名、电话、及客户信息升级客诉；客诉标签选择：电商-活动争议）。<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+<strong>【参考话术】</strong><br>
+<strong>第一次沟通：</strong>XX先生/女士，抱歉给您带来不好的体验，这边看到您不是从线上官方渠道购买的产品，不同渠道在活动方案上（价保、优惠等）可能会有一些差异，具体还是得麻烦您和卖家进行沟通。<br><br>
+<strong>第二次主导沟通：</strong>您可以先联系卖家，请工作人员结合实际情况和您沟通。我们也是希望您咨询的问题能得到尽快处理，所以建议您和卖家直接联系，这样能尽量节省您的时间。<br><br>
+<strong>第三次礼貌挂机：</strong>明白您的诉求，我们也非常希望能协助您。但非官方渠道购买的产品，我们确实无法为您处理价保需求。还是麻烦您和卖家直接联系。如果您后续还有其他问题，欢迎您随时联系我们。先不打扰您了，祝您生活愉快，再见。
+    ` }
+      }
+    },
+specialCases: {
+  "中国港澳台": { 
+    title: "特殊场景说明 - 中国港澳台", 
+    content: "",
+    cases: [
+      {
+        title: "场景1：客户恶意语言中伤或辱骂",
+        script: `
+<span style="color:#d9534f; font-weight:bold;">参考话术1：</span>
+X先生/女士，我们非常希望帮您解决问题，但鉴于您持续辱骂的不文明行为，我们已无法与您正常沟通，
+为了不占用其他客户的等待时间，我将结束当前对话。
+后续如果您希望沟通产品使用和技术咨询方面的问题，可以再次联系我们。感谢您的理解。`
+      },
+      {
+        title: "场景2：赠品不支持价保",
+        script: `<span style="color:#d9534f; font-weight:bold;">参考话术1：</span>
+非常理解您的需求，在价保周期内，如因同一商品出现商家官方降价产生的差价，是支持价保的，
+赠品不在价保范围内呢，还请您理解。
+
+<span style="color:#d9534f; font-weight:bold;">参考话术2：</span>
+理解您的心情，仅在活动期购买的订单才享受赠品，且赠品数量是有限的，
+先到先得，无法申请补发，确实很抱歉。`
+      }
+    ]
+  },
+  "台湾": { title:"特殊场景说明 - 台湾", content:"这里是台湾的特殊场景说明或政策" },
+  "日本": { title:"特殊场景说明 - 日本", content:"这里是日本的特殊场景说明或政策" },
+  "美国": { title:"特殊场景说明 - 美国", content:"这里是美国的特殊场景说明或政策" }
+}
+  },
+  en: {
+    tabs: { main: "Main Function", special: "Special Cases" },
+    countries: ["China", "Taiwan", "Japan", "USA"],
+    channels: {
+      "China": ["Online Official Store", "Other Channels"],
+      "Taiwan": ["Online Official Store", "Other Channels"],
+      "Japan": ["Online Official Store", "Other Channels"],
+      "USA": ["Online Official Store", "Other Channels"]
+    },
+    activity: {
+      "China": { start: "2024-06-01", end: "2024-06-10" },
+      "Taiwan": { start: "2024-06-01", end: "2024-06-08" },
+      "Japan": { start: "2024-07-01", end: "2024-07-10" },
+      "USA": { start: "2024-11-20", end: "2024-11-27" }
+    },
+    rules: {
+      "China": { thresholds: [7,30] },
+      "Taiwan": { thresholds: [7,30] },
+      "Japan": { thresholds: [14,30] },
+      "USA": { thresholds: [7,30] }
+    },
+    policies: {
+      "Online Official Store": {
+        within7: { policy:"Full Price Protection", thought:"Within first threshold days", script:"Full refund for official store" },
+        within30: { policy:"Partial Price Protection", thought:"Within second threshold days", script:"Partial refund" },
+        over30: { policy:"No Price Protection", thought:"Beyond threshold", script:"No refund" },
+        afterActivity:{ policy:"Event Ended", thought:"After end no protection", script:"Event ended script" }
+      },
+      "Other Channels": {
+        within7: { policy:"Full Price Protection", thought:"Within first threshold days", script:"Full refund for other channels" },
+        within30: { policy:"Partial Price Protection", thought:"Within second threshold days", script:"Partial refund for other channels" },
+        over30: { policy:"No Price Protection", thought:"Beyond threshold", script:"No refund OC" },
+        afterActivity:{ policy:"Event Ended", thought:"After end no protection", script:"Event ended script OC" }
+      }
+    },
+    specialCases: {
+      "China": { title:"Special Case - China", content:"Special policies for China" },
+      "Taiwan": { title:"Special Case - Taiwan", content:"Special policies for Taiwan" },
+      "Japan": { title:"Special Case - Japan", content:"Special policies for Japan" },
+      "USA": { title:"Special Case - USA", content:"Special policies for USA" }
+    }
+  }
+};
+
+// 初始化和事件
+document.addEventListener("DOMContentLoaded",()=>{
+  const langSel=document.getElementById("language");
+  const countrySel=document.getElementById("country");
+  const channelSel=document.getElementById("channel");
+  const deliverDate=document.getElementById("deliver-date");
+  const applyDate=document.getElementById("apply-date");
+  const calcBtn=document.getElementById("calculate");
+  const resSection=document.getElementById("result");
+  const tabs=document.querySelectorAll(".tab");
+  const mainContent=document.getElementById("main-content");
+  const specialContent=document.getElementById("special-content");
+  const specialCountrySel=document.getElementById("special-country");
+  const specialDisplay=document.getElementById("special-display");
+
+  let lang=langSel.value;
+
+
+  // 获取日期输入框的容器
+  const deliverGroup = deliverDate.parentElement;
+  const applyGroup = applyDate.parentElement;
+  const isActivitySel = document.getElementById("isActivityPeriod");
+
+  // 监听 “产品是否还在活动期”
+  isActivitySel.addEventListener("change", function () {
+    if (this.value === "no") {
+      // 活动已结束 → 隐藏日期框
+      deliverGroup.classList.add("hidden");
+      applyGroup.classList.add("hidden");
+      deliverDate.value = "";
+      applyDate.value = "";
+
+      // 直接输出活动结束的方案
+      const cfg = window.priceProtectConfig[lang];
+      const country = countrySel.value;
+      const channel = channelSel.value;
+      const policy = cfg.policies[channel]["afterActivity"];
+
+      document.getElementById("policy").innerHTML = policy.policy;
+      document.getElementById("thought").innerHTML = policy.thought;
+      document.getElementById("script").innerHTML = policy.script;
+      resSection.classList.remove("hidden");
+    } else {
+      // 活动期内 → 显示日期框并清空结果
+      deliverGroup.classList.remove("hidden");
+      applyGroup.classList.remove("hidden");
+      resSection.classList.add("hidden");
+      document.getElementById("policy").innerHTML = "";
+      document.getElementById("thought").innerHTML = "";
+      document.getElementById("script").innerHTML = "";
+    }
+  });
+
+  document.querySelectorAll('.form-group').forEach(group => {
+    const dateInput = group.querySelector('input[type="date"]');
+    if (dateInput) {
+      group.style.cursor = 'pointer'; // 鼠标手型
+      group.addEventListener('click', () => {
+        // 优先使用原生 showPicker（Chrome/Edge支持）
+        if (dateInput.showPicker) {
+          dateInput.showPicker();
+        } else {
+          dateInput.focus();
+        }
+      });
+    }
+  });
+
+
+
+  function loadCountries(){
+    const cfg=window.priceProtectConfig[lang];
+    countrySel.innerHTML="";
+    cfg.countries.forEach(c=>{
+      const opt=document.createElement("option");
+      opt.value=c; opt.textContent=c;
+      countrySel.appendChild(opt);
+    });
+    loadChannels();
+    // 特殊场景国家
+    specialCountrySel.innerHTML="";
+    cfg.countries.forEach(c=>{
+      const opt=document.createElement("option");
+      opt.value=c; opt.textContent=c;
+      specialCountrySel.appendChild(opt);
+    });
+    updateSpecialDisplay();
+  }
+
+  function loadChannels(){
+    const cfg=window.priceProtectConfig[lang];
+    const country=countrySel.value;
+    const list=cfg.channels[country]||[];
+    channelSel.innerHTML="";
+    list.forEach(ch=>{
+      const opt=document.createElement("option");
+      opt.value=ch; opt.textContent=ch;
+      channelSel.appendChild(opt);
+    });
+  }
+
+
+
+function updateCopyButtonLink() {
+    const cfg = window.priceProtectConfig[lang];
+    const country = document.getElementById("country").value;
+    const internalLink = cfg.links && cfg.links[country]
+        ? cfg.links[country]
+        : "https://docs.djicorp.com/weboffice/l/shYEp8S5foirW";
+
+    document.getElementById("link-display").innerHTML = `
+      <div style="background-color:#fffbea;border:1px solid #ffe58f;padding:8px 12px;border-radius:6px;
+                  font-family:Arial,'Microsoft YaHei';font-size:0.85em;line-height:1.4;color:#664d03;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:bold;display:flex;align-items:center;gap:6px;">
+            📄 各产品降价活动对照表
+          </span>
+          <button id="copy-btn" style="padding:2px 6px;background-color:#1890ff;color:white;border:none;
+                  border-radius:3px;cursor:pointer;font-size:0.75em;display:inline-flex;align-items:center;
+                  gap:4px;width:auto;min-width:unset;">
+            📋 点击复制，并在浏览器访问
+          </button>
+        </div>
+        <div style="margin-top:4px;font-size:0.75em;color:#8c6d1f;">包含产品名称、活动起止时间、降价幅度，价保金额</div>
+      </div>
+    `;
+
+    document.getElementById("copy-btn").addEventListener("click", function () {
+      const btn = this;
+      navigator.clipboard.writeText(internalLink).then(() => {
+        btn.textContent = "✔ 已复制";
+        btn.style.backgroundColor = "#52c41a";
+        setTimeout(() => {
+          btn.textContent = " 📋 点击复制，并在浏览器访问";
+          btn.style.backgroundColor = "#1890ff";
+        }, 1000);
+      }).catch(err => {
+        console.error("复制失败:", err);
+      });
+    });
+}
+
+
+  function updateLabels(){
+    const cfg=window.priceProtectConfig[lang];
+    document.getElementById("tab-main").textContent=cfg.tabs.main;
+    document.getElementById("tab-special").textContent=cfg.tabs.special;
+    document.getElementById("label-country").textContent="国家/地区";
+    document.getElementById("label-channel").textContent="购买渠道";
+    document.getElementById("label-deliver-date").textContent="客户签收时间";
+    document.getElementById("label-apply-date").textContent="申请价保时间";
+
+    document.getElementById("label-special-country").textContent="国家/地区";
+  }
+
+function updateSpecialDisplay(){
+  const cfg = window.priceProtectConfig[lang];
+  const scCountry = specialCountrySel.value;
+  const sc = cfg.specialCases[scCountry];
+
+  if (!sc) {
+    specialDisplay.innerHTML = "<p>暂无特殊场景说明</p>";
+    return;
+  }
+
+  let html = `<h3 style="color:#007bff;">${sc.title}</h3>
+              <p style="font-size:0.9em;color:#555;">${sc.content}</p>`;
+
+  if (sc.cases && sc.cases.length > 0) {
+    html += `<div style="margin-top:15px;">`;
+    sc.cases.forEach(cs => {
+      html += `<div style="
+                  border:1px solid #ddd;
+                  border-radius:6px;
+                  padding:10px;
+                  background:#f9f9f9;
+                  margin-bottom:10px;">
+                  <strong style="color:#333;">${cs.title}</strong>
+                  <pre style="
+                    white-space:pre-wrap;
+                    word-break:break-word;
+                    background:#fff;
+                    padding:8px;
+                    border-radius:4px;
+                    margin-top:6px;
+                    font-size:0.85em;
+                  ">${cs.script}</pre>
+               </div>`;
+    });
+    html += `</div>`;
+  }
+
+  specialDisplay.innerHTML = html;
+}
+
+langSel.addEventListener("change",()=>{
+    lang = langSel.value;
+    loadCountries();
+    updateLabels();
+    updateCopyButtonLink(); // 🔹 切语言时刷新按钮链接
+    resSection.classList.add("hidden");
+});
+
+countrySel.addEventListener("change", () => {
+    loadChannels();
+    channelSel.value = "";
+    deliverDate.value = "";
+    applyDate.value = "";
+    updateCopyButtonLink(); // 🔹 切国家时刷新按钮链接
+    resSection.classList.add("hidden");
+});
+
+
+  specialCountrySel.addEventListener("change",updateSpecialDisplay);
+
+calcBtn.addEventListener("click",()=>{
+  const deliver=new Date(deliverDate.value);
+  const apply=new Date(applyDate.value);
+  const isActivityPeriod=document.getElementById("isActivityPeriod").value;
+
+  // 检查必填
+  if(isNaN(deliver)||isNaN(apply)){
+      alert("请选择日期");
+      return;
+  }
+  if(apply < deliver){
+      alert("申请价保时间不能早于客户签收时间！");
+      return;
+  }
+
+  const cfg=window.priceProtectConfig[lang];
+  const country=countrySel.value;
+  const channel=channelSel.value;
+  let phase="";
+
+  // 如果选否，直接走 afterActivity
+  if(isActivityPeriod === "no"){
+      phase="afterActivity";
+  }else{
+      const diffDays=Math.floor((apply-deliver)/(1000*60*60*24));
+      const thresholds=cfg.rules[country]?.thresholds||[7,30];
+      const activityCfg=cfg.activity[country];
+      if(activityCfg){
+        const actEnd=new Date(activityCfg.end);
+        if(apply>actEnd) phase="afterActivity";
+      }
+      if(!phase){
+        if(diffDays<=thresholds[0]) phase="within7";
+        else if(diffDays<=thresholds[1]) phase="within30";
+        else phase="over30";
+      }
+  }
+
+  const policy=cfg.policies[channel][phase];
+  document.getElementById("policy").innerHTML=policy.policy;
+  document.getElementById("thought").innerHTML=policy.thought;
+  document.getElementById("script").innerHTML=policy.script;
+  resSection.classList.remove("hidden");
+});
+
+  // 切换tab
+  tabs.forEach(tab=>{
+    tab.addEventListener("click",()=>{
+      tabs.forEach(t=>t.classList.remove("active"));
+      tab.classList.add("active");
+      if(tab.dataset.tab==="main"){
+        mainContent.classList.remove("hidden");
+        specialContent.classList.add("hidden");
+      }else{
+        mainContent.classList.add("hidden");
+        specialContent.classList.remove("hidden");
+      }
+    });
+  });
+
+  loadCountries();
+  updateLabels();
+updateCopyButtonLink();
+});
+</script>
+</body>
+</html>
