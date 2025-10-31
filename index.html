@@ -171,19 +171,22 @@ button:hover {background:#0056b3;}
 window.priceProtectConfig = {
   zh: {
     tabs: { main: "价保方案", special: "其他场景FAQ" },
-    countries: ["中国港澳台"],
+    countries: ["中国港澳台","日本、韩国"],
     channels: {
       "中国港澳台": ["线上官方商城", "其他渠道"],
+      "日本、韩国": ["线上官方商城", "其他渠道"],
     },
     activity: {
       "中国港澳台": { start: "2025-11-01", end: "2025-11-12" },
     },
     rules: {
       "中国港澳台": { thresholds: [7, 30] },
+      "日本、韩国": { thresholds: [14, 30] },
     },
 
     links: {
       "中国港澳台": "https://docs.djicorp.com/weboffice/l/shYEp8S5foirW?linkname=11",
+      "日本、韩国": "https://docs.djicorp.com/weboffice/l/shYEp8S5foirW?linkname=11",
     },
 
 
@@ -506,7 +509,29 @@ X先生/女士，我们非常希望帮您解决问题，但鉴于您持续辱骂
       }
     ]
   },
-  "台湾": { title:"特殊场景说明 - 台湾", content:"这里是台湾的特殊场景说明或政策" },
+  "日本、韩国": {     title: "特殊场景说明 - 日本、韩国", 
+    content: "",
+    cases: [
+      {
+        title: "场景1：客户恶意语言中伤或辱骂",
+        script: `
+<span style="color:#d9534f; font-weight:bold;">参考话术1：</span>
+X先生/女士，我们非常希望帮您解决问题，但鉴于您持续辱骂的不文明行为，我们已无法与您正常沟通，
+为了不占用其他客户的等待时间，我将结束当前对话。
+后续如果您希望沟通产品使用和技术咨询方面的问题，可以再次联系我们。感谢您的理解。`
+      },
+      {
+        title: "场景2：赠品不支持价保",
+        script: `<span style="color:#d9534f; font-weight:bold;">参考话术1：</span>
+非常理解您的需求，在价保周期内，如因同一商品出现商家官方降价产生的差价，是支持价保的，
+赠品不在价保范围内呢，还请您理解。
+
+<span style="color:#d9534f; font-weight:bold;">参考话术2：</span>
+理解您的心情，仅在活动期购买的订单才享受赠品，且赠品数量是有限的，
+先到先得，无法申请补发，确实很抱歉。`
+      }
+    ]
+  },
   "日本": { title:"特殊场景说明 - 日本", content:"这里是日本的特殊场景说明或政策" },
   "美国": { title:"特殊场景说明 - 美国", content:"这里是美国的特殊场景说明或政策" }
 }
