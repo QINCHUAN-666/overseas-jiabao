@@ -5,18 +5,17 @@
 <title>价保周期判定工具</title>
 <style>
 body {font-family:"Helvetica Neue",Arial,sans-serif;background:#f8f9fa;color:#333;margin:0;padding:0;}
-/* 顶栏样式升级版 */
 header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end; /* 或 center，看你想要的垂直对齐方式 */
+  align-items: flex-end; 
   padding: 28px 20px 16px;
   background: linear-gradient(to bottom, #ffffff, #f7f9fb);
-  border-bottom: none; /* 去掉底部边框 */
+  border-bottom: none; 
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   
-  max-width: 600px; /* 和下面 main 一样的宽度 */
-  margin: 0 auto;    /* 居中 */
+  max-width: 600px; 
+  margin: 0 auto;    
 }
 
 h1 {
@@ -42,8 +41,8 @@ h1 {
 
 
 input[type="date"] {
-    box-sizing: border-box;  /* 确保 padding 和边框都计算在总宽度里 */
-    padding: 10px;            /* 和其他 input/select 一致 */
+    box-sizing: border-box;  
+    padding: 10px;          
 }
 
 /* 标签页样式升级版 */
@@ -87,18 +86,24 @@ button:hover {background:#0056b3;}
 <body>
 <header>
   <div>
-    <h1 id="header-title">价保周期判定工具</h1>
     <div class="tab-container">
       <div class="tab active" data-tab="main" id="tab-main">价保方案</div>
       <div class="tab" data-tab="special" id="tab-special">特殊场景</div>
     </div>
   </div>
-  <div class="lang-switch">
-    <select id="language">
-      <option value="zh">简体中文</option>
-      <option value="en">English</option>
-    </select>
+<div class="lang-switch" style="display:flex;flex-direction:column;align-items:flex-end;">
+  <div style="font-size:0.85em;color:#555;margin-bottom:6px;">请选择语言/Please select language：</div>
+  <div style="display:flex;gap:8px;">
+<button id="btn-zh"
+  style="padding:6px 12px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;color:#333;">
+  中文
+</button>
+<button id="btn-en"
+  style="padding:6px 12px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;color:#333;">
+  English
+</button>
   </div>
+</div>
 </header>
 
 <main>
@@ -120,8 +125,8 @@ button:hover {background:#0056b3;}
 <div class="form-group">
   <label for="isActivityPeriod" id="label-isActivityPeriod">产品是否还在活动期</label>
   <select id="isActivityPeriod">
-    <option value="yes">在活动期内</option>
-    <option value="no">活动已结束</option>
+    <option id="option-yes" value="yes">在活动期内</option>
+    <option id="option-no" value="no">活动已结束</option>
   </select>
 </div>
 
@@ -139,7 +144,7 @@ button:hover {background:#0056b3;}
     <button id="calculate">判定价保周期</button>
 
     <section id="result" class="hidden">
-      <h2 id="result-title">结果</h2>
+      <h2 id="result-title">方案指引</h2>
       <div id="policy"></div>
       <div id="thought"></div>
       <div id="script"></div>
@@ -177,7 +182,7 @@ window.priceProtectConfig = {
       "日本、韩国": ["线上官方商城", "其他渠道"],
     },
     activity: {
-      "中国港澳台": { start: "2025-11-01", end: "2025-11-12" },
+      "中国港澳台": { start: "2025-11-01", end: "2025-11-30" },
     },
     rules: {
       "中国港澳台": { thresholds: [7, 30] },
@@ -188,6 +193,23 @@ window.priceProtectConfig = {
       "中国港澳台": "https://docs.djicorp.com/weboffice/l/shYEp8S5foirW?linkname=11",
       "日本、韩国": "https://docs.djicorp.com/weboffice/l/shYEp8S5foirW?linkname=11",
     },
+
+
+    labels: { 
+      country: "国家/地区",
+      channel: "购买渠道",
+      isActivityPeriod: "产品是否还在活动期",
+      isActivityYes: "在活动期内",
+      isActivityNo: "活动已结束",
+      deliverDate: "客户签收时间 (当地时间)",
+      applyDate: "申请价保时间  (当地时间)",
+      calcBtn: "判定价保周期",
+      resultTitle: "方案指引",
+      linkTable: "📄 各产品降价活动对照表",
+      linkDesc: "包含产品名称、活动起止时间、降价幅度，价保金额",
+      copyBtn: "📋 点击复制，并在浏览器访问",
+      copied: "✔ 已复制"
+  },
 
 
     policies: {
@@ -276,7 +298,7 @@ within30: {
   `
 },
 over30: { 
-  policy: "无补发方案",  
+  policy: "无补发方案，婉拒需求，无任何灰度方案。如客户不接受，充分解释政策，根据沟通情况礼貌挂机。如有风险场景及时升级",  
 
   thought: `
   <p><strong style="color:#6c757d;">参考话术：</strong><br>
@@ -536,53 +558,484 @@ X先生/女士，我们非常希望帮您解决问题，但鉴于您持续辱骂
   "美国": { title:"特殊场景说明 - 美国", content:"这里是美国的特殊场景说明或政策" }
 }
   },
+
+
   en: {
-    tabs: { main: "Main Function", special: "Special Cases" },
-    countries: ["China", "Taiwan", "Japan", "USA"],
+    tabs: { main: "Price Match", special: "Special Cases" },
+    countries: ["Asia Pacific (Hong Kong)", "Europe", "Americas (US, Canada, Puerto Rico)", "Asia Pacific (Australia, New Zealand,Singapore,Philippines)"],
     channels: {
-      "China": ["Online Official Store", "Other Channels"],
-      "Taiwan": ["Online Official Store", "Other Channels"],
-      "Japan": ["Online Official Store", "Other Channels"],
-      "USA": ["Online Official Store", "Other Channels"]
+      "Asia Pacific (Hong Kong)": ["Online Official Store", "Other Channels"],
+      "Europe": ["Online Official Store", "Other Channels"],
+      "Americas (US, Canada, Puerto Rico)": ["Online Official Store", "Other Channels"],
+      "Asia Pacific (Australia, New Zealand,Singapore,Philippines)": ["Online Official Store", "Other Channels"]
     },
     activity: {
-      "China": { start: "2024-06-01", end: "2024-06-10" },
-      "Taiwan": { start: "2024-06-01", end: "2024-06-08" },
-      "Japan": { start: "2024-07-01", end: "2024-07-10" },
-      "USA": { start: "2024-11-20", end: "2024-11-27" }
+      "Asia Pacific (Hong Kong)": { start: "2025-11-01", end: "2025-11-30" },
+      "Europe": { start: "2025-11-01", end: "2025-11-30" },
+      "Americas (US, Canada, Puerto Rico)": { start: "2025-11-01", end: "2025-11-30" },
+      "Asia Pacific (Australia, New Zealand,Singapore,Philippines)": { start: "2025-11-01", end: "2025-11-30" }
     },
     rules: {
-      "China": { thresholds: [7,30] },
-      "Taiwan": { thresholds: [7,30] },
-      "Japan": { thresholds: [14,30] },
-      "USA": { thresholds: [7,30] }
+      "Asia Pacific (Hong Kong)": { thresholds: [7, 30] },
+      "Europe": { thresholds: [14, 30] },
+      "Americas (US, Canada, Puerto Rico)": { thresholds: [14, 30] },
+      "Asia Pacific (Australia, New Zealand,Singapore,Philippines)": { thresholds: [14, 30] },
     },
+    links: {
+      "Asia Pacific (Hong Kong)": "https://docs.djicorp.com/weboffice/l/shYEp8S5foirW?linkname=11",
+      "Europe": "https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO",
+      "Americas (US, Canada, Puerto Rico)": "https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO",
+      "Asia Pacific (Australia, New Zealand,Singapore,Philippines)": "https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO",
+    },
+    labels: { 
+      country: "Country / Region",
+      channel: "Purchase Channel",
+      isActivityPeriod: "Is the product still within the promotion period?",
+      isActivityYes: "Within promotion period",
+      isActivityNo: "Promotion ended",
+      deliverDate: "Customer Delivery Date (Local time)",
+      applyDate: "Price Match Request Date (Local time)",
+      calcBtn: "Check Price Match Period",
+      resultTitle: "Solution Guidelines",
+      linkTable: "📄 Product Price Drop & Promotion List",
+      linkDesc: "Includes product name, promotion dates, discount amount, and price protection amount",
+      copyBtn: "📋 Click to copy and open in browser",
+      copied: "✔ Copied"
+},
     policies: {
       "Online Official Store": {
-        within7: { policy:"Full Price Protection", thought:"Within first threshold days", script:"Full refund for official store" },
-        within30: { policy:"Partial Price Protection", thought:"Within second threshold days", script:"Partial refund" },
-        over30: { policy:"No Price Protection", thought:"Beyond threshold", script:"No refund" },
-        afterActivity:{ policy:"Event Ended", thought:"After end no protection", script:"Event ended script" }
+
+
+
+hk_within30: {
+policy: "① Decline Politely<br>② Offer DJI Credit as compensation<br>③Offer Return and refund option",   
+
+  thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#dc3545;">1. Politely decline the customer's request</strong><br>
+<strong style="color:#0066cc; font-size:1.1em;">Reference Script:</strong>
+<div style="font-family:Arial, 'Microsoft YaHei'; line-height:1.6;">
+  <p>
+    Dear <span style="background-color:#fff3cd;">XXX</span>, if any item you purchased from the DJI Official Store is reduced in price within 7 calendar days of delivery, we offer compensation for price difference. As your order is now beyond this 7-day window, it's no longer eligible for compensation.<span style="color:#dc3545;">We appreciate your understanding regarding this policy limitation.</span>
+  </p>
+
+  <p><strong style="color:#28a745;">2. If the customer does not accept, you may refer to the discount details to provide corresponding compensation: </strong><br>
+  <a href="https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO" target="_blank">https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO</a>
+
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/c08b6de39a254139a42f798d6a178b6c.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+<strong style="color:#0066cc; font-size:1.1em;">Reference Script:</strong>
+<div style="font-family:Arial, 'Microsoft YaHei'; line-height:1.6;">
+  <p>
+    We fully appreciate your expectations. As a gesture of gratitude for your support, we have <strong style="color:#17a2b8;">exceptionally granted you XXX DJI Credits</strong>.<br>
+    DJI Credits can be used to purchase any product from the DJI Official Store (excluding shipping fees) and will become effective approximately 15 days after order delivery. Please visit 
+    <a href="https://my.dji.com/credit" target="_blank">https://my.dji.com/credit</a> to check your DJI Credit balance.<br>
+    Thank you for your understanding!
+  </p>
+  <p style="color:#6c757d; font-size:0.9em;">
+    Note: If a return occurs later, the DJI Credit compensation will be deducted from your refund.
+  </p>
+
+  <p><strong style="color:#ffc107;">3. If the customer does not accept DJI Credit, the customer may return the product and place a new order (subject to the return policy).</strong><br>
+Reference Script: I completely understand how you feel. If your product meets the requirements of our return policy, you can apply for a return and refund, and then repurchase the item at the promotional price. Would this solution work for you?</p>
+
+  <p><strong style="color:#6c757d;">4. If the customer does not accept DJI Credit or a return, and there is no other additional solution</strong><br>
+Reference Script: We sincerely apologize for not meeting your expectations. Indeed, your order has exceeded the DJI Online store's price match period and is not eligible for the corresponding price match policy. Thank you for your understanding.<br>
+  The promotional event is held irregularly, and we also hope you can purchase products at a discounted price. Since your order has exceeded the price protection period, price protection can no longer be applied. I have already done my best to apply XXX DJI Credit for you. Please consider this.</p>
+</div>
+  `,
+
+  script: `
+<strong>If the customer does not accept the relevant solution or policy explanation</strong><br><br>
+【Handling Principle】<br>
+1. In cases where a clear malicious line occupation Scenario is encountered (occupation of the line for 15 minutes or more), handle according to the following approach and communication pace, then proceed with the polite hang-up process (TL approval is required; after TL approval, record it at:
+<a href="https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO" target="_blank">https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO</a>）。<br>
+2. 2. Escalated Complaint Guidelines:<br>
+① Intercept risk-free scenarios as much as possible, clarify the price protection policy according to the template and plan, inform whether there is a solution or not, and do not escalate the customer complaint.<br>
+②  In the following scenarios, you can escalate the customer complaint (Note: Collect the customer's name, phone number, and information for complaint escalation; for complaint tags, select: E-commerce - Event Dispute).<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+【[Reply Template]】<br>
+<strong>First Communication: </strong>I completely understand how you feel, and it is indeed upsetting when the price protection period for a promotion has expired. However, after checking, your order has exceeded the price protection policy period. We are sorry we cannot fulfill your request and appreciate your understanding.<br><br>
+<strong>Second Leading Communication: </strong>We completely understand how you feel. We see that your order was placed on XX. You purchased the product in advance, allowing you to capture more unique and remarkable moments. However, this order has already exceeded the price protection period for the promotion, so we are sorry that we cannot provide price protection service for you.
+<br><br>
+<strong>Third Polite Call Ending:</strong>We sincerely hope to assist you in resolving the issue. However, your order can no longer be price-protected as it has exceeded the price protection period. I have done my utmost to secure XXX DJI Credits for you, and I sincerely hope for your understanding. If you have any other questions in the future, please feel free to contact us at any time. I won't disturb you any further. Wish you a wonderful day. Goodbye.
+  `
+},
+
+
+
+within7: { 
+  policy: "Apply DJI Credit or Refund the price difference in cash", 
+  thought: `
+    <div style="font-family:Arial, 'Microsoft YaHei'; line-height:1.6;">
+      <strong style="color:#0066cc; font-size:1.1em;">Two Options</strong>
+      <ol style="margin:8px 0 12px 20px; padding:0;">
+        <li style="background-color:#fff3cd; padding:2px 4px; border-radius:4px;">
+           1. Provide DJI Credit for the price difference 
+        </li>
+        <li style="background-color:#d4edda; padding:2px 4px; border-radius:4px;">
+          2. Provide Refund: Create a CRM case to arrange a refund for the price difference （<strong>cash</strong>）
+        </li>
+      </ol>
+    </div>
+  `,
+  script: `
+
+<strong style="color:#0066cc; font-size:1.1em;">Reference Script:</strong>
+<div style="font-family:Arial, 'Microsoft YaHei'; line-height:1.6;">
+  <p>
+    Dear <span style="background-color:#fff3cd;">XXX</span>, thank you for your trust. Please rest assured!<br>
+    We can offer you <strong style="color:#17a2b8;">DJI Credit equivalent to the price difference</strong> or
+    <strong style="color:#ffc107;">a cash refund for the difference</strong>.<br>
+    Would you prefer <span style="background-color:#fff3cd;">DJI Credit</span> or
+    <span style="background-color:#d4edda;">a cash refund</span>?
+  </p>
+  <p style="margin:6px 0;">
+    <strong>DJI Credit Compensation:</strong> DJI Credit can be used to purchase any product from the official DJI Store (excluding shipping fees). DJI Credit will become effective approximately 15 days after the order is delivered. You can check your DJI Credit balance at  
+    <a href="https://my.dji.com/credit" target="_blank" style="color:#0066cc;">https://my.dji.com/credit</a>.
+  </p>
+  <p style="margin:6px 0;">
+    <strong>Cash Refund for Price Difference:</strong> The price difference will be refunded to your original payment account within 2–7 business days.
+  </p>
+  <p style="color:#6c757d; font-size:0.9em;">
+    Note: If a return occurs later, the DJI Credit compensation or price difference will be deducted from the refund amount.
+  </p>
+</div>
+  `
+},
+within30: { 
+  policy: "① Decline Politely<br>② Offer DJI Credit as compensation<br>③Offer Return and refund option",   
+
+  thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#dc3545;">1. Politely decline the customer's request</strong><br>
+<strong style="color:#0066cc; font-size:1.1em;">Reference Script:</strong>
+<div style="font-family:Arial, 'Microsoft YaHei'; line-height:1.6;">
+  <p>
+    Dear <span style="background-color:#fff3cd;">XXX</span>, if any item you purchased from the DJI Official Store is reduced in price within 14 calendar days of delivery, we offer compensation for price difference. As your order is now beyond this 14-day window, it's no longer eligible for compensation.<span style="color:#dc3545;">We appreciate your understanding regarding this policy limitation.</span>
+  </p>
+
+  <p><strong style="color:#28a745;">2. If the customer does not accept, you may refer to the discount details to provide corresponding compensation: </strong><br>
+  <a href="https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO" target="_blank">https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO</a>
+
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/c08b6de39a254139a42f798d6a178b6c.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+<strong style="color:#0066cc; font-size:1.1em;">Reference Script:</strong>
+<div style="font-family:Arial, 'Microsoft YaHei'; line-height:1.6;">
+  <p>
+    We fully appreciate your expectations. As a gesture of gratitude for your support, we have <strong style="color:#17a2b8;">exceptionally granted you XXX DJI Credits</strong>.<br>
+    DJI Credits can be used to purchase any product from the DJI Official Store (excluding shipping fees) and will become effective approximately 15 days after order delivery. Please visit 
+    <a href="https://my.dji.com/credit" target="_blank">https://my.dji.com/credit</a> to check your DJI Credit balance.<br>
+    Thank you for your understanding!
+  </p>
+  <p style="color:#6c757d; font-size:0.9em;">
+    Note: If a return occurs later, the DJI Credit compensation will be deducted from your refund.
+  </p>
+
+  <p><strong style="color:#ffc107;">3. If the customer does not accept DJI Credit, the customer may return the product and place a new order (subject to the return policy).</strong><br>
+Reference Script: I completely understand how you feel. If your product meets the requirements of our return policy, you can apply for a return and refund, and then repurchase the item at the promotional price. Would this solution work for you?</p>
+
+  <p><strong style="color:#6c757d;">4. If the customer does not accept DJI Credit or a return, and there is no other additional solution</strong><br>
+Reference Script: We sincerely apologize for not meeting your expectations. Indeed, your order has exceeded the DJI Online store's price match period and is not eligible for the corresponding price match policy. Thank you for your understanding.<br>
+  The promotional event is held irregularly, and we also hope you can purchase products at a discounted price. Since your order has exceeded the price protection period, price protection can no longer be applied. I have already done my best to apply XXX DJI Credit for you. Please consider this.</p>
+</div>
+  `,
+
+  script: `
+<strong>If the customer does not accept the relevant solution or policy explanation</strong><br><br>
+【Handling Principle】<br>
+1. In cases where a clear malicious line occupation Scenario is encountered (occupation of the line for 15 minutes or more), handle according to the following approach and communication pace, then proceed with the polite hang-up process (TL approval is required; after TL approval, record it at:
+<a href="https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO" target="_blank">https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO</a>）。<br>
+2. 2. Escalated Complaint Guidelines:<br>
+① Intercept risk-free scenarios as much as possible, clarify the price protection policy according to the template and plan, inform whether there is a solution or not, and do not escalate the customer complaint.<br>
+②  In the following scenarios, you can escalate the customer complaint (Note: Collect the customer's name, phone number, and information for complaint escalation; for complaint tags, select: E-commerce - Event Dispute).<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+【[Reply Template]】<br>
+<strong>First Communication: </strong>I completely understand how you feel, and it is indeed upsetting when the price protection period for a promotion has expired. However, after checking, your order has exceeded the price protection policy period. We are sorry we cannot fulfill your request and appreciate your understanding.<br><br>
+<strong>Second Leading Communication: </strong>We completely understand how you feel. We see that your order was placed on XX. You purchased the product in advance, allowing you to capture more unique and remarkable moments. However, this order has already exceeded the price protection period for the promotion, so we are sorry that we cannot provide price protection service for you.
+<br><br>
+<strong>Third Polite Call Ending:</strong>We sincerely hope to assist you in resolving the issue. However, your order can no longer be price-protected as it has exceeded the price protection period. I have done my utmost to secure XXX DJI Credits for you, and I sincerely hope for your understanding. If you have any other questions in the future, please feel free to contact us at any time. I won't disturb you any further. Wish you a wonderful day. Goodbye.
+  `
+},
+over30: { 
+  policy: "No replacement solution. Decline the request; there is no gray-area solution available. If the customer does not accept, fully explain the policy and politely end the call based on the communication situation. If there are any risky scenarios, please upgrade promptly.",  
+
+  thought: `
+<p><strong style="color:#6c757d;">Reference Script:</strong><br>
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#dc3545;">1.</strong> Dear <span style="background-color:#fff3cd;">XXX</span>, per our price protection policy, we provide compensation for price differences if items purchased from the DJI Official Store drop in price within 14 calendar days of delivery. As your order falls outside this coverage period, we are unable to process compensation. We appreciate your understanding of these policy terms.</p>
+  <p><strong style="color:#dc3545;">2.</strong> We regret that we could not meet your expectations on this occasion. Since your order exceeds our 14-day price protection window, we are unable to offer compensation for the price difference. We hope you can appreciate this policy consistency for all customers.</p>
+  <p><strong style="color:#dc3545;">3.</strong> While promotional timing varies, we always aim to offer competitive pricing. As your order is now beyond the price protection period, we cannot apply retroactive adjustments. We truly value your understanding and hope to serve you better in the future.</p>
+</div>
+  `,
+
+  script: `
+<strong>If the customer does not accept the relevant solution or policy explanation</strong><br><br>
+【Handling Principle】<br>
+1. In cases where a clear malicious line occupation Scenario is encountered (occupation of the line for 15 minutes or more), handle according to the following approach and communication pace, then proceed with the polite hang-up process (TL approval is required; after TL approval, record it at: 
+<a href="https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO" target="_blank">https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO</a>）。<br>
+2. Escalated Complaint Guidelines:<br>
+① Intercept risk-free scenarios as much as possible, clarify the price protection policy according to the template and plan, inform whether there is a solution or not, and do not escalate the customer complaint.<br>
+② In the following scenarios, you can escalate the customer complaint (Note: Collect the customer's name, phone number, and information for complaint escalation; for complaint tags, select: E-commerce - Event Dispute).
+<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+[Reply Template]<br>
+<strong>First Communication: </strong><span style="background-color:#fff3cd;">Mr./Ms. XX</span>，I completely understand how you are feeling. It is indeed upsetting when the price protection period for promotions has passed. However, after checking for you, your order has exceeded the price protection policy period by too long a time. Regrettably, we are unable to provide price protection service or a refund for the difference. Thank you for your understanding.<br><br>
+
+<strong>Second Leading Communication:</strong>We completely understand how you feel. We see that your order was placed on<span style="background-color:#fff3cd;">XX</span>。You purchased the product in advance, allowing you to capture more unique and remarkable moments. However, this order has exceeded the activity price protection validity period by a significant amount of time. We apologize, but we are unable to provide price protection service or a price difference refund.<br><br>
+
+<strong>Third Courteous Hang-Up:</strong>We sincerely hope to assist you in resolving the issue, but as your order has exceeded the price protection period by a significant amount of time, we are unable to provide price protection. We truly hope for your understanding. If you have any other questions in the future, please feel free to contact us at any time. I won't disturb you any further. Wish you a wonderful day. Goodbye.
+  `
+},
+afterActivity: { 
+  policy: "If a customer requests price protection, politely refuse the request. If there is a risk, escalate to a customer complaint.",  
+
+  thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#dc3545;">[Reply Template]:</strong><br>
+    Hello, thank you very much for your support of our product. Regarding the price-protection issue you described, since <strong>the promotion has already ended</strong> and the product price has not changed, price protection is not available at this time. We appreciate your understanding.
+  </p>
+  
+  <p><strong style="color:#dc3545;">Empathetic Refusal 2:</strong><br>
+    The promotion has ended, so unfortunately we cannot provide price-protection compensation on this occasion. However, we will continue to provide you with other high-quality services and ongoing support for the product you purchased, and we hope for your understanding.  
+    If you encounter any issues while using the product, please feel free to contact us at any time, and we will do our utmost to assist you.
+  </p>
+  
+  <p>
+    <strong>In the following scenarios, you can escalate the customer complaint</strong><br>
+    <span style="color:#6c757d; font-size:0.9em;">
+      Note: Collect the customer's name, phone number, and relevant information for complaint escalation; for complaint tags, select: E-commerce – Event Dispute.
+    </span>
+  </p>
+</div>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+  `,
+  script: ``
+}
       },
+
+
       "Other Channels": {
-        within7: { policy:"Full Price Protection", thought:"Within first threshold days", script:"Full refund for other channels" },
-        within30: { policy:"Partial Price Protection", thought:"Within second threshold days", script:"Partial refund for other channels" },
-        over30: { policy:"No Price Protection", thought:"Beyond threshold", script:"No refund OC" },
-        afterActivity:{ policy:"Event Ended", thought:"After end no protection", script:"Event ended script OC" }
+        within7: {     policy: "No Protection Plan[Internal] Guide the customer to communicate and confirm with the purchaser.",  
+
+    thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#6c757d;">explanation：</strong> There may be differences in price protection, compensation, discounts, etc. across different channels. The customer needs to contact the respective seller for communication and confirmation.</p>
+  <p><strong style="color:#0066cc;">[Reply Template]：</strong><br>
+    Hello, we have found that your product was not purchased through our official online store. To ensure you receive optimal after-sales support, we strongly recommend first contacting your point of purchase for assistance. We appreciate your understanding of this process.
+  </p>
+</div>
+    `,
+
+    script: `
+<strong>If the customer does not accept the relevant solution or policy explanation</strong><br><br>
+
+<strong>【Handling Principle】</strong><br>
+Different promotional offers may vary by channel. Please advise the customer to contact the seller for further assistance.<br>
+For price reduction & price protection issues, if a customer complains about dealers (such as service attitude, service quality, etc.), please gather relevant information and report it to the dealers' contact person in the GT dedicated group [手持海外活动线上线下联动].<br><br>
+
+<strong>Information Collection Template:</strong><br>
+[Dealers]:：<br>
+[Customer Purchased Product Model]:<br>
+[Product SN]:<br>
+[Name]:<br>
+[Contact Information]: Phone/Email<br>
+[Proof of Purchase]:<br><br>
+
+<strong>【nofficial Store Price Protection Issue Handling Principle】</strong><br>
+1. In cases where a clear malicious line occupation Scenario is encountered (occupation of the line for 15 minutes or more), handle according to the following approach and communication pace, then proceed with the polite hang-up process (TL approval is required; after TL approval, record it at: 
+<a href="https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO" target="_blank">https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO</a>）。<br>
+2. Escalated Complaint Guidelines:<br>
+① Intercept risk-free scenarios as much as possible, clarify the price protection policy according to the template and plan, inform whether there is a solution or not, and do not escalate the customer complaint.<br>
+② In the following scenarios, you can escalate the customer complaint (Note: Collect the customer's name, phone number, and information for complaint escalation; for complaint tags, select: E-commerce - Event Dispute).<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+<strong>【[Reply Template]】</strong><br>
+<strong>First communication:</strong>Mr./Ms. XX, we apologize for the unpleasant experience. We see that the product was not purchased through the official online channel, and different channels may have some differences in promotional plans (such as price protection and discounts). For specific details, we kindly ask you to communicate directly with the seller.<br><br>
+<strong>Second Communication Initiative: </strong>You may contact the seller first and have their staff discuss the situation with you based on the actual circumstances. We also hope your inquiry can be addressed as soon as possible, so we recommend that you contact the seller directly to help save your time.<br><br>
+<strong>Third time politely ending the call: </strong>We understand your concerns and are very willing to assist you. However, for products purchased through unofficial channels, we are unable to process your price protection request. Please contact the seller directly. If you have any other questions in the future, please feel free to contact us at any time. I won't disturb you any further. Wish you a wonderful day. Goodbye.
+    `
+  },
+        within30: {     policy: "No Protection Plan[Internal] Guide the customer to communicate and confirm with the purchaser.",  
+
+    thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#6c757d;">explanation：</strong> There may be differences in price protection, compensation, discounts, etc. across different channels. The customer needs to contact the respective seller for communication and confirmation.</p>
+  <p><strong style="color:#0066cc;">[Reply Template]：</strong><br>
+    Hello, we have found that your product was not purchased through our official online store. To ensure you receive optimal after-sales support, we strongly recommend first contacting your point of purchase for assistance. We appreciate your understanding of this process.
+  </p>
+</div>
+    `,
+
+    script: `
+<strong>If the customer does not accept the relevant solution or policy explanation</strong><br><br>
+
+<strong>【Handling Principle】</strong><br>
+Different promotional offers may vary by channel. Please advise the customer to contact the seller for further assistance.<br>
+For price reduction & price protection issues, if a customer complains about dealers (such as service attitude, service quality, etc.), please gather relevant information and report it to the dealers' contact person in the GT dedicated group [手持海外活动线上线下联动].<br><br>
+
+<strong>Information Collection Template:</strong><br>
+[Dealers]:：<br>
+[Customer Purchased Product Model]:<br>
+[Product SN]:<br>
+[Name]:<br>
+[Contact Information]: Phone/Email<br>
+[Proof of Purchase]:<br><br>
+
+<strong>【nofficial Store Price Protection Issue Handling Principle】</strong><br>
+1. In cases where a clear malicious line occupation Scenario is encountered (occupation of the line for 15 minutes or more), handle according to the following approach and communication pace, then proceed with the polite hang-up process (TL approval is required; after TL approval, record it at: 
+<a href="https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO" target="_blank">https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO</a>）。<br>
+2. Escalated Complaint Guidelines:<br>
+① Intercept risk-free scenarios as much as possible, clarify the price protection policy according to the template and plan, inform whether there is a solution or not, and do not escalate the customer complaint.<br>
+② In the following scenarios, you can escalate the customer complaint (Note: Collect the customer's name, phone number, and information for complaint escalation; for complaint tags, select: E-commerce - Event Dispute).<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+<strong>【[Reply Template]】</strong><br>
+<strong>First communication:</strong>Mr./Ms. XX, we apologize for the unpleasant experience. We see that the product was not purchased through the official online channel, and different channels may have some differences in promotional plans (such as price protection and discounts). For specific details, we kindly ask you to communicate directly with the seller.<br><br>
+<strong>Second Communication Initiative: </strong>You may contact the seller first and have their staff discuss the situation with you based on the actual circumstances. We also hope your inquiry can be addressed as soon as possible, so we recommend that you contact the seller directly to help save your time.<br><br>
+<strong>Third time politely ending the call: </strong>We understand your concerns and are very willing to assist you. However, for products purchased through unofficial channels, we are unable to process your price protection request. Please contact the seller directly. If you have any other questions in the future, please feel free to contact us at any time. I won't disturb you any further. Wish you a wonderful day. Goodbye.
+    `
+  },
+        over30: {     policy: "No Protection Plan[Internal] Guide the customer to communicate and confirm with the purchaser.",  
+
+    thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#6c757d;">explanation：</strong> There may be differences in price protection, compensation, discounts, etc. across different channels. The customer needs to contact the respective seller for communication and confirmation.</p>
+  <p><strong style="color:#0066cc;">[Reply Template]：</strong><br>
+    Hello, we have found that your product was not purchased through our official online store. To ensure you receive optimal after-sales support, we strongly recommend first contacting your point of purchase for assistance. We appreciate your understanding of this process.
+  </p>
+</div>
+    `,
+
+    script: `
+<strong>If the customer does not accept the relevant solution or policy explanation</strong><br><br>
+
+<strong>【Handling Principle】</strong><br>
+Different promotional offers may vary by channel. Please advise the customer to contact the seller for further assistance.<br>
+For price reduction & price protection issues, if a customer complains about dealers (such as service attitude, service quality, etc.), please gather relevant information and report it to the dealers' contact person in the GT dedicated group [手持海外活动线上线下联动].<br><br>
+
+<strong>Information Collection Template:</strong><br>
+[Dealers]:：<br>
+[Customer Purchased Product Model]:<br>
+[Product SN]:<br>
+[Name]:<br>
+[Contact Information]: Phone/Email<br>
+[Proof of Purchase]:<br><br>
+
+<strong>【nofficial Store Price Protection Issue Handling Principle】</strong><br>
+1. In cases where a clear malicious line occupation Scenario is encountered (occupation of the line for 15 minutes or more), handle according to the following approach and communication pace, then proceed with the polite hang-up process (TL approval is required; after TL approval, record it at: 
+<a href="https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO" target="_blank">https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO</a>）。<br>
+2. Escalated Complaint Guidelines:<br>
+① Intercept risk-free scenarios as much as possible, clarify the price protection policy according to the template and plan, inform whether there is a solution or not, and do not escalate the customer complaint.<br>
+② In the following scenarios, you can escalate the customer complaint (Note: Collect the customer's name, phone number, and information for complaint escalation; for complaint tags, select: E-commerce - Event Dispute).<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+<strong>【[Reply Template]】</strong><br>
+<strong>First communication:</strong>Mr./Ms. XX, we apologize for the unpleasant experience. We see that the product was not purchased through the official online channel, and different channels may have some differences in promotional plans (such as price protection and discounts). For specific details, we kindly ask you to communicate directly with the seller.<br><br>
+<strong>Second Communication Initiative: </strong>You may contact the seller first and have their staff discuss the situation with you based on the actual circumstances. We also hope your inquiry can be addressed as soon as possible, so we recommend that you contact the seller directly to help save your time.<br><br>
+<strong>Third time politely ending the call: </strong>We understand your concerns and are very willing to assist you. However, for products purchased through unofficial channels, we are unable to process your price protection request. Please contact the seller directly. If you have any other questions in the future, please feel free to contact us at any time. I won't disturb you any further. Wish you a wonderful day. Goodbye.
+    `
+  },
+        afterActivity:{     policy: "No Protection Plan[Internal] Guide the customer to communicate and confirm with the purchaser.",  
+
+    thought: `
+<div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;">
+  <p><strong style="color:#6c757d;">explanation：</strong> There may be differences in price protection, compensation, discounts, etc. across different channels. The customer needs to contact the respective seller for communication and confirmation.</p>
+  <p><strong style="color:#0066cc;">[Reply Template]：</strong><br>
+    Hello, we have found that your product was not purchased through our official online store. To ensure you receive optimal after-sales support, we strongly recommend first contacting your point of purchase for assistance. We appreciate your understanding of this process.
+  </p>
+</div>
+    `,
+
+    script: `
+<strong>If the customer does not accept the relevant solution or policy explanation</strong><br><br>
+
+<strong>【Handling Principle】</strong><br>
+Different promotional offers may vary by channel. Please advise the customer to contact the seller for further assistance.<br>
+For price reduction & price protection issues, if a customer complains about dealers (such as service attitude, service quality, etc.), please gather relevant information and report it to the dealers' contact person in the GT dedicated group [手持海外活动线上线下联动].<br><br>
+
+<strong>Information Collection Template:</strong><br>
+[Dealers]:：<br>
+[Customer Purchased Product Model]:<br>
+[Product SN]:<br>
+[Name]:<br>
+[Contact Information]: Phone/Email<br>
+[Proof of Purchase]:<br><br>
+
+<strong>【nofficial Store Price Protection Issue Handling Principle】</strong><br>
+1. In cases where a clear malicious line occupation Scenario is encountered (occupation of the line for 15 minutes or more), handle according to the following approach and communication pace, then proceed with the polite hang-up process (TL approval is required; after TL approval, record it at: 
+<a href="https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO" target="_blank">https://docs.djicorp.com/weboffice/l/somxmt3FGGeBO</a>）。<br>
+2. Escalated Complaint Guidelines:<br>
+① Intercept risk-free scenarios as much as possible, clarify the price protection policy according to the template and plan, inform whether there is a solution or not, and do not escalate the customer complaint.<br>
+② In the following scenarios, you can escalate the customer complaint (Note: Collect the customer's name, phone number, and information for complaint escalation; for complaint tags, select: E-commerce - Event Dispute).<br><br>
+<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
+<strong>【[Reply Template]】</strong><br>
+<strong>First communication:</strong>Mr./Ms. XX, we apologize for the unpleasant experience. We see that the product was not purchased through the official online channel, and different channels may have some differences in promotional plans (such as price protection and discounts). For specific details, we kindly ask you to communicate directly with the seller.<br><br>
+<strong>Second Communication Initiative: </strong>You may contact the seller first and have their staff discuss the situation with you based on the actual circumstances. We also hope your inquiry can be addressed as soon as possible, so we recommend that you contact the seller directly to help save your time.<br><br>
+<strong>Third time politely ending the call: </strong>We understand your concerns and are very willing to assist you. However, for products purchased through unofficial channels, we are unable to process your price protection request. Please contact the seller directly. If you have any other questions in the future, please feel free to contact us at any time. I won't disturb you any further. Wish you a wonderful day. Goodbye.
+    `
+  }
       }
     },
+
+
+
+
+
+
+
+
+
+
+
     specialCases: {
-      "China": { title:"Special Case - China", content:"Special policies for China" },
-      "Taiwan": { title:"Special Case - Taiwan", content:"Special policies for Taiwan" },
-      "Japan": { title:"Special Case - Japan", content:"Special policies for Japan" },
-      "USA": { title:"Special Case - USA", content:"Special policies for USA" }
+      "Asia Pacific (Hong Kong)": {     title: "Other Scenario FAQs - Asia Pacific (Hong Kong)", 
+    content: "",
+    cases: [
+      {
+        title: "Scenario 1: If the customer uses malicious language to insult or verbally abuse, making normal communication impossible, please refer to the following template for politely ending the call.",
+        script: `
+<span style="color:#d9534f; font-weight:bold;">Reference template: </span>
+Mr./Ms. [Name], while we remain committed to resolving your concern, the continued use of abusive language violates our service policy. To respect other customers' waiting time, we must now respectfully suspend this call. For further assistance when ready to communicate respectfully, please contact us again.`
+      },
+    ]
+  },
+      "Europe": {     title: "Other Scenario FAQs - Europe", 
+    content: "",
+    cases: [
+      {
+        title: "Scenario 1: If the customer uses malicious language to insult or verbally abuse, making normal communication impossible, please refer to the following template for politely ending the call.",
+        script: `
+<span style="color:#d9534f; font-weight:bold;">Reference template: </span>
+Mr./Ms. [Name], while we remain committed to resolving your concern, the continued use of abusive language violates our service policy. To respect other customers' waiting time, we must now respectfully suspend this call. For further assistance when ready to communicate respectfully, please contact us again.`
+      },
+    ]
+  },
+      "Asia Pacific (Australia, New Zealand,Singapore,Philippines)": {     title: "Other Scenario FAQs - Asia Pacific (Australia, New Zealand,Singapore,Philippines)", 
+    content: "",
+    cases: [
+      {
+        title: "Scenario 1: If the customer uses malicious language to insult or verbally abuse, making normal communication impossible, please refer to the following template for politely ending the call.",
+        script: `
+<span style="color:#d9534f; font-weight:bold;">Reference template: </span>
+Mr./Ms. [Name], while we remain committed to resolving your concern, the continued use of abusive language violates our service policy. To respect other customers' waiting time, we must now respectfully suspend this call. For further assistance when ready to communicate respectfully, please contact us again.`
+      },
+    ]
+  },
+      "Americas (US, Canada, Puerto Rico)": {     title: "Other Scenario FAQs - Americas (US, Canada, Puerto Rico)", 
+    content: "",
+    cases: [
+      {
+        title: "Scenario 1: If the customer uses malicious language to insult or verbally abuse, making normal communication impossible, please refer to the following template for politely ending the call.",
+        script: `
+<span style="color:#d9534f; font-weight:bold;">Reference template: </span>
+Mr./Ms. [Name], while we remain committed to resolving your concern, the continued use of abusive language violates our service policy. To respect other customers' waiting time, we must now respectfully suspend this call. For further assistance when ready to communicate respectfully, please contact us again.`
+      },
+    ]
+  }
     }
   }
 };
 
-// 初始化和事件
 document.addEventListener("DOMContentLoaded",()=>{
-  const langSel=document.getElementById("language");
+const btnZh=document.getElementById("btn-zh");
+const btnEn=document.getElementById("btn-en");
   const countrySel=document.getElementById("country");
   const channelSel=document.getElementById("channel");
   const deliverDate=document.getElementById("deliver-date");
@@ -595,24 +1048,24 @@ document.addEventListener("DOMContentLoaded",()=>{
   const specialCountrySel=document.getElementById("special-country");
   const specialDisplay=document.getElementById("special-display");
 
-  let lang=langSel.value;
+let lang="zh"; 
 
 
-  // 获取日期输入框的容器
+
   const deliverGroup = deliverDate.parentElement;
   const applyGroup = applyDate.parentElement;
   const isActivitySel = document.getElementById("isActivityPeriod");
 
-  // 监听 “产品是否还在活动期”
+
   isActivitySel.addEventListener("change", function () {
     if (this.value === "no") {
-      // 活动已结束 → 隐藏日期框
+
       deliverGroup.classList.add("hidden");
       applyGroup.classList.add("hidden");
       deliverDate.value = "";
       applyDate.value = "";
 
-      // 直接输出活动结束的方案
+
       const cfg = window.priceProtectConfig[lang];
       const country = countrySel.value;
       const channel = channelSel.value;
@@ -623,7 +1076,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       document.getElementById("script").innerHTML = policy.script;
       resSection.classList.remove("hidden");
     } else {
-      // 活动期内 → 显示日期框并清空结果
+
       deliverGroup.classList.remove("hidden");
       applyGroup.classList.remove("hidden");
       resSection.classList.add("hidden");
@@ -636,9 +1089,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.querySelectorAll('.form-group').forEach(group => {
     const dateInput = group.querySelector('input[type="date"]');
     if (dateInput) {
-      group.style.cursor = 'pointer'; // 鼠标手型
+      group.style.cursor = 'pointer'; 
       group.addEventListener('click', () => {
-        // 优先使用原生 showPicker（Chrome/Edge支持）
+
         if (dateInput.showPicker) {
           dateInput.showPicker();
         } else {
@@ -647,8 +1100,6 @@ document.addEventListener("DOMContentLoaded",()=>{
       });
     }
   });
-
-
 
   function loadCountries(){
     const cfg=window.priceProtectConfig[lang];
@@ -659,7 +1110,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       countrySel.appendChild(opt);
     });
     loadChannels();
-    // 特殊场景国家
+
     specialCountrySel.innerHTML="";
     cfg.countries.forEach(c=>{
       const opt=document.createElement("option");
@@ -686,34 +1137,23 @@ document.addEventListener("DOMContentLoaded",()=>{
 function updateCopyButtonLink() {
     const cfg = window.priceProtectConfig[lang];
     const country = document.getElementById("country").value;
-    const internalLink = cfg.links && cfg.links[country]
-        ? cfg.links[country]
-        : "https://docs.djicorp.com/weboffice/l/shYEp8S5foirW";
-
+    const internalLink = cfg.links && cfg.links[country] ? cfg.links[country] : "https://docs.djicorp.com/weboffice/l/shYEp8S5foirW";
     document.getElementById("link-display").innerHTML = `
-      <div style="background-color:#fffbea;border:1px solid #ffe58f;padding:8px 12px;border-radius:6px;
-                  font-family:Arial,'Microsoft YaHei';font-size:0.85em;line-height:1.4;color:#664d03;">
+      <div style="background-color:#fffbea; border:1px solid #ffe58f; padding:8px 12px; border-radius:6px; font-family:Arial,'Microsoft YaHei'; font-size:0.85em; line-height:1.4; color:#664d03;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-weight:bold;display:flex;align-items:center;gap:6px;">
-            📄 各产品降价活动对照表
-          </span>
-          <button id="copy-btn" style="padding:2px 6px;background-color:#1890ff;color:white;border:none;
-                  border-radius:3px;cursor:pointer;font-size:0.75em;display:inline-flex;align-items:center;
-                  gap:4px;width:auto;min-width:unset;">
-            📋 点击复制，并在浏览器访问
-          </button>
+          <span style="font-weight:bold;display:flex;align-items:center;gap:6px;">${cfg.labels.linkTable}</span>
+          <button id="copy-btn" style="padding:2px 6px;background-color:#1890ff;color:white;border:none;border-radius:3px;cursor:pointer;font-size:0.75em;display:inline-flex;align-items:center;gap:4px;width:auto;min-width:unset;">${cfg.labels.copyBtn}</button>
         </div>
-        <div style="margin-top:4px;font-size:0.75em;color:#8c6d1f;">包含产品名称、活动起止时间、降价幅度，价保金额</div>
+        <div style="margin-top:4px;font-size:0.75em;color:#8c6d1f;">${cfg.labels.linkDesc}</div>
       </div>
     `;
-
     document.getElementById("copy-btn").addEventListener("click", function () {
       const btn = this;
       navigator.clipboard.writeText(internalLink).then(() => {
-        btn.textContent = "✔ 已复制";
+        btn.textContent = cfg.labels.copied;
         btn.style.backgroundColor = "#52c41a";
         setTimeout(() => {
-          btn.textContent = " 📋 点击复制，并在浏览器访问";
+          btn.textContent = cfg.labels.copyBtn;
           btn.style.backgroundColor = "#1890ff";
         }, 1000);
       }).catch(err => {
@@ -723,17 +1163,21 @@ function updateCopyButtonLink() {
 }
 
 
-  function updateLabels(){
-    const cfg=window.priceProtectConfig[lang];
-    document.getElementById("tab-main").textContent=cfg.tabs.main;
-    document.getElementById("tab-special").textContent=cfg.tabs.special;
-    document.getElementById("label-country").textContent="国家/地区";
-    document.getElementById("label-channel").textContent="购买渠道";
-    document.getElementById("label-deliver-date").textContent="客户签收时间";
-    document.getElementById("label-apply-date").textContent="申请价保时间";
-
-    document.getElementById("label-special-country").textContent="国家/地区";
-  }
+function updateLabels(){
+    const cfg = window.priceProtectConfig[lang];
+    document.getElementById("tab-main").textContent = cfg.tabs.main;
+    document.getElementById("tab-special").textContent = cfg.tabs.special;
+    document.getElementById("label-country").textContent = cfg.labels.country;
+    document.getElementById("label-channel").textContent = cfg.labels.channel;
+    document.getElementById("label-isActivityPeriod").textContent = cfg.labels.isActivityPeriod;
+    document.getElementById("option-yes").textContent = cfg.labels.isActivityYes;
+    document.getElementById("option-no").textContent = cfg.labels.isActivityNo;
+    document.getElementById("label-deliver-date").textContent = cfg.labels.deliverDate;
+    document.getElementById("label-apply-date").textContent = cfg.labels.applyDate;
+    document.getElementById("label-special-country").textContent = cfg.labels.country;
+    document.getElementById("calculate").textContent = cfg.labels.calcBtn;
+    document.getElementById("result-title").textContent = cfg.labels.resultTitle;
+}
 
 function updateSpecialDisplay(){
   const cfg = window.priceProtectConfig[lang];
@@ -775,12 +1219,28 @@ function updateSpecialDisplay(){
   specialDisplay.innerHTML = html;
 }
 
-langSel.addEventListener("change",()=>{
-    lang = langSel.value;
+function switchLanguage(newLang){
+    lang = newLang;
     loadCountries();
     updateLabels();
-    updateCopyButtonLink(); // 🔹 切语言时刷新按钮链接
+    updateCopyButtonLink();
     resSection.classList.add("hidden");
+}
+
+btnZh.addEventListener("click",()=>{
+    switchLanguage("zh");
+    btnZh.style.background="#007bff";
+    btnZh.style.color="#fff";
+    btnEn.style.background="#fff";
+    btnEn.style.color="#333";
+});
+
+btnEn.addEventListener("click",()=>{
+    switchLanguage("en");
+    btnEn.style.background="#007bff";
+    btnEn.style.color="#fff";
+    btnZh.style.background="#fff";
+    btnZh.style.color="#333";
 });
 
 countrySel.addEventListener("change", () => {
@@ -788,7 +1248,7 @@ countrySel.addEventListener("change", () => {
     channelSel.value = "";
     deliverDate.value = "";
     applyDate.value = "";
-    updateCopyButtonLink(); // 🔹 切国家时刷新按钮链接
+    updateCopyButtonLink(); 
     resSection.classList.add("hidden");
 });
 
@@ -796,51 +1256,56 @@ countrySel.addEventListener("change", () => {
   specialCountrySel.addEventListener("change",updateSpecialDisplay);
 
 calcBtn.addEventListener("click",()=>{
-  const deliver=new Date(deliverDate.value);
-  const apply=new Date(applyDate.value);
-  const isActivityPeriod=document.getElementById("isActivityPeriod").value;
+  const isActivityPeriod = document.getElementById("isActivityPeriod").value;
+  const cfg = window.priceProtectConfig[lang];
+  const country = countrySel.value;
+  const channel = channelSel.value;
+  let phase = "";
 
-  // 检查必填
-  if(isNaN(deliver)||isNaN(apply)){
+
+  if (isActivityPeriod === "no") {
+    phase = "afterActivity";
+  } else {
+    const deliver = new Date(deliverDate.value);
+    const apply = new Date(applyDate.value);
+
+    if (isNaN(deliver) || isNaN(apply)) {
       alert("请选择日期");
       return;
-  }
-  if(apply < deliver){
+    }
+    if (apply < deliver) {
       alert("申请价保时间不能早于客户签收时间！");
       return;
+    }
+
+
+    const diffDays = Math.floor((apply - deliver) / (1000*60*60*24));
+    const thresholds = cfg.rules[country]?.thresholds || [7,30];
+    const activityCfg = cfg.activity[country];
+    if(activityCfg){
+      const actEnd = new Date(activityCfg.end);
+      if(apply > actEnd) phase = "afterActivity";
+    }
+    if(!phase){
+      if(diffDays <= thresholds[0]) phase = "within7";
+      else if(diffDays <= thresholds[1]) phase = "within30";
+      else phase = "over30";
+    }
   }
 
-  const cfg=window.priceProtectConfig[lang];
-  const country=countrySel.value;
-  const channel=channelSel.value;
-  let phase="";
+let policy;
+if (country.includes("港") || country.includes("Hong Kong")) {
+    policy = cfg.policies[channel]["hk_" + phase] || cfg.policies[channel][phase];
+} else {
+    policy = cfg.policies[channel][phase];
+}
 
-  // 如果选否，直接走 afterActivity
-  if(isActivityPeriod === "no"){
-      phase="afterActivity";
-  }else{
-      const diffDays=Math.floor((apply-deliver)/(1000*60*60*24));
-      const thresholds=cfg.rules[country]?.thresholds||[7,30];
-      const activityCfg=cfg.activity[country];
-      if(activityCfg){
-        const actEnd=new Date(activityCfg.end);
-        if(apply>actEnd) phase="afterActivity";
-      }
-      if(!phase){
-        if(diffDays<=thresholds[0]) phase="within7";
-        else if(diffDays<=thresholds[1]) phase="within30";
-        else phase="over30";
-      }
-  }
-
-  const policy=cfg.policies[channel][phase];
-  document.getElementById("policy").innerHTML=policy.policy;
-  document.getElementById("thought").innerHTML=policy.thought;
-  document.getElementById("script").innerHTML=policy.script;
+document.getElementById("policy").innerHTML = policy.policy || "";
+document.getElementById("thought").innerHTML = policy.thought || "";
+document.getElementById("script").innerHTML = policy.script || "";
   resSection.classList.remove("hidden");
 });
 
-  // 切换tab
   tabs.forEach(tab=>{
     tab.addEventListener("click",()=>{
       tabs.forEach(t=>t.classList.remove("active"));
@@ -855,9 +1320,9 @@ calcBtn.addEventListener("click",()=>{
     });
   });
 
-  loadCountries();
-  updateLabels();
-updateCopyButtonLink();
+switchLanguage(lang); // lang 默认是 "zh"
+btnZh.style.background="#007bff";
+btnZh.style.color="#fff";
 });
 </script>
 </body>
