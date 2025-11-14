@@ -14,7 +14,7 @@ header {
   border-bottom: none; 
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   
-  max-width: 600px; 
+  max-width: 1500px; 
   margin: 0 auto;    
 }
 
@@ -72,7 +72,7 @@ input[type="date"] {
   border-color: #007bff;
   color: #fff;
 }
-main {max-width:600px;margin:30px auto;padding:20px;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+main {max-width:1500px;margin:30px auto;padding:20px;background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
 .form-group {margin-bottom:20px;}
 label {display:block;margin-bottom:8px;font-weight:500;}
 input,select,button {width:100%;padding:10px;font-size:1em;border:1px solid #ccc;border-radius:6px;}
@@ -86,10 +86,10 @@ button:hover {background:#0056b3;}
 <body>
 <header>
   <div>
-    <div class="tab-container">
-      <div class="tab active" data-tab="main" id="tab-main">价保方案</div>
-      <div class="tab" data-tab="special" id="tab-special">特殊场景</div>
-    </div>
+<div class="tab-container">
+  <div class="tab top-tab active" data-tab="main" id="tab-main">价保方案</div>
+  <div class="tab top-tab" data-tab="special" id="tab-special">特殊场景</div>
+</div>
   </div>
 <div class="lang-switch" style="display:flex;flex-direction:column;align-items:flex-end;">
   <div style="font-size:0.85em;color:#555;margin-bottom:6px;">请选择语言/Please select language：</div>
@@ -108,7 +108,17 @@ button:hover {background:#0056b3;}
 
 <main>
   <!-- 主功能 -->
+<!-- 二级子标签，仅英文模式显示 -->
+
   <div id="main-content">
+
+<div id="en-subtabs" class="tab-container hidden" style="margin-bottom:12px;">
+  <div class="tab sub-tab active" data-subtab="other">Other products</div>
+  <div class="tab sub-tab" data-subtab="romo">DJI Romo</div>
+</div>
+
+
+  <div id="other-products-form">
     <div class="form-group">
       <label for="country" id="label-country">国家/地区</label>
       <select id="country"></select>
@@ -150,6 +160,82 @@ button:hover {background:#0056b3;}
       <div id="script"></div>
     </section>
   </div>
+
+
+ <div id="romo-form" class="hidden">
+
+<!-- 提示区域 -->
+<div id="romo-tip" style="
+    background-color:#fffbea;
+    border:1px solid #ffe58f;
+    padding:16px;
+    border-radius:8px;
+    margin-bottom:20px;
+    font-family:Arial, 'Microsoft YaHei';
+    color:#664d03;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+">
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="
+        background-color:#faad14;
+        color:white;
+        font-weight:bold;
+        border-radius:50%;
+        width:28px;
+        height:28px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:16px;
+    ">ℹ</div>
+    <div style="flex:1;">
+      <strong style="font-size:1.05em;">DJI Romo Price protection rules reminder</strong>
+      <p style="margin:6px 0 4px;">We can provide price difference for all Orders which <strong>paid from 10.28 to 11.12</strong>, if customer contact us <strong>within the promotional period</strong>.</p>
+      <p style="margin:6px 0 4px;">Notes: If order includes gift <strong>ROMO Accessory Kit</strong>, we need to deduct the value of the gift from the price difference.</p>
+      <p style="margin:6px 0 0;"><em>Price difference= Actual paid amount(DJI Credits included) - the promotional price - the value/price of the ROMO Accessory Kit</em></p>
+    </div>
+  </div>
+</div>
+
+    <div class="form-group">
+
+
+      <label>Actual paid amount (DJI Credits included)</label>
+<input type="number" id="actual-paid" step="0.01" value="0">
+    </div>
+    <div class="form-group">
+      <label>Promotional Price</label>
+<input type="number" id="promo-price" step="0.01" value="0">
+    </div>
+    <div class="form-group">
+      <label>ROMO Accessory Kit Value</label>
+<input type="number" id="romo-value" step="0.01" value="0">
+    </div>
+    <div class="form-group">
+      <label>Purchase Channel</label>
+      <select id="romo-channel">
+        <option value="Online Official Store">Online Official Store</option>
+        <option value="Other Channels">Other Channels</option>
+      </select>
+    </div>
+
+
+
+<div class="form-group" id="romo-date-group">
+  <label>Customer contact time</label>
+  <input type="date" id="romo-contact-date">
+</div>
+    <button id="romo-calc">Calculate & Output Solution</button>
+
+    <section id="romo-result" class="hidden">
+      <h2>Solution Guidelines</h2>
+      <div id="romo-policy"></div>
+      <div id="romo-thought"></div>
+      <div id="romo-script"></div>
+    </section>
+  </div>  
+</div>
+
 
   <!-- 特殊场景 -->
   <div id="special-content" class="hidden">
@@ -606,6 +692,31 @@ X先生/女士，我们非常希望帮您解决问题，但鉴于您持续辱骂
       "Online Official Store": {
 
 
+    romo: {
+        within7: {
+            policy: "【DJI Romo】活动期内政策说明",
+            thought: "Romo 专用补偿规则说明...",
+            script: "Romo 专用参考话术..."
+        },
+        within30: {
+            policy: "【DJI Romo】活动期内超过7天的政策说明",
+            thought: "补偿原则...",
+            script: "参考话术..."
+        },
+        over30: {
+            policy: "【DJI Romo】活动期内超过30天的政策说明",
+            thought: "处理原则...",
+            script: "参考话术..."
+        },
+        afterActivity: {
+            policy: "【DJI Romo】活动结束后政策说明",
+            thought: "处理原则...",
+            script: "参考话术..."
+        }
+    },
+
+
+
 
 hk_within30: {
 policy: "① Decline Politely<br>② Offer DJI Credit as compensation<br>③Offer Return and refund option",   
@@ -773,7 +884,7 @@ afterActivity: {
     Hello, thank you very much for your support of our product. Regarding the price-protection issue you described, since <strong>the promotion has already ended</strong> and the product price has not changed, price protection is not available at this time. We appreciate your understanding.
   </p>
   
-  <p><strong style="color:#dc3545;">Empathetic Refusal 2:</strong><br>
+  <p><strong style="color:#dc3545;">[Reply Template]:</strong><br>
     The promotion has ended, so unfortunately we cannot provide price-protection compensation on this occasion. However, we will continue to provide you with other high-quality services and ongoing support for the product you purchased, and we hope for your understanding.  
     If you encounter any issues while using the product, please feel free to contact us at any time, and we will do our utmost to assist you.
   </p>
@@ -792,6 +903,36 @@ afterActivity: {
 
 
       "Other Channels": {
+
+
+
+    romo: {
+        within7: {
+            policy: "【DJI Romo】活动期内政策说明",
+            thought: "Romo 专用补偿规则说明...",
+            script: "Romo 专用参考话术..."
+        },
+        within30: {
+            policy: "【DJI Romo】活动期内超过7天的政策说明",
+            thought: "补偿原则...",
+            script: "参考话术..."
+        },
+        over30: {
+            policy: "【DJI Romo】活动期内超过30天的政策说明",
+            thought: "处理原则...",
+            script: "参考话术..."
+        },
+        afterActivity: {
+            policy: "【DJI Romo】活动结束后政策说明",
+            thought: "处理原则...",
+            script: "参考话术..."
+        }
+    },
+
+
+
+
+
         within7: {     policy: "No Protection Plan[Internal] Guide the customer to communicate and confirm with the purchaser.",  
 
     thought: `
@@ -824,7 +965,6 @@ For price reduction & price protection issues, if a customer complains about dea
 2. Escalated Complaint Guidelines:<br>
 ① Intercept risk-free scenarios as much as possible, clarify the price protection policy according to the template and plan, inform whether there is a solution or not, and do not escalate the customer complaint.<br>
 ② In the following scenarios, you can escalate the customer complaint (Note: Collect the customer's name, phone number, and information for complaint escalation; for complaint tags, select: E-commerce - Event Dispute).<br><br>
-<div style=\"margin:0px 0;\"> <img src=\"https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/63148291bb70458a8dc990c98ae51975.png\" alt=\"门店类型一图片\" style=\"max-width:100%;height:auto;\"</div>
 <strong>【Reply Template】</strong><br>
 <strong>First communication:</strong>Mr./Ms. XX, we apologize for the unpleasant experience. We see that the product was not purchased through the official online channel, and different channels may have some differences in promotional plans (such as price protection and discounts). For specific details, we kindly ask you to communicate directly with the seller.<br><br>
 <strong>Second Communication Initiative: </strong>You may contact the seller first and have their staff discuss the situation with you based on the actual circumstances. We also hope your inquiry can be addressed as soon as possible, so we recommend that you contact the seller directly to help save your time.<br><br>
@@ -1024,10 +1164,131 @@ const btnEn=document.getElementById("btn-en");
   const specialContent=document.getElementById("special-content");
   const specialCountrySel=document.getElementById("special-country");
   const specialDisplay=document.getElementById("special-display");
-
+// 确保 ROMO 输入框默认是 0
+document.getElementById("actual-paid").value = 0;
+document.getElementById("promo-price").value = 0;
+document.getElementById("romo-value").value = 0;
 let lang="zh"; 
 
 
+
+// 二级 Tab 切换（仅英语显示）
+document.querySelectorAll('.sub-tab').forEach(st=>{
+    st.addEventListener("click", () => {
+        document.querySelectorAll('.sub-tab').forEach(t=>t.classList.remove("active"));
+        st.classList.add("active");
+
+        if (st.dataset.subtab === "other") {
+            document.getElementById("other-products-form").classList.remove("hidden");
+            document.getElementById("romo-form").classList.add("hidden");
+        } else {
+            document.getElementById("other-products-form").classList.add("hidden");
+            document.getElementById("romo-form").classList.remove("hidden");
+        }
+    });
+});
+
+
+// 当渠道选择变化时，控制日期行显示/隐藏
+document.getElementById("romo-channel").addEventListener("change", function () {
+    const dateGroup = document.getElementById("romo-date-group");
+    if (this.value === "Other Channels") {
+        dateGroup.classList.add("hidden");
+        document.getElementById("romo-contact-date").value = "";
+    } else {
+        dateGroup.classList.remove("hidden");
+    }
+});
+
+document.getElementById("romo-calc").addEventListener("click", ()=>{
+// 价格输入缺省值都按 0
+const actual = parseFloat(document.getElementById("actual-paid").value) || 0;
+const promo = parseFloat(document.getElementById("promo-price").value) || 0;
+const romoVal = parseFloat(document.getElementById("romo-value").value) || 0;
+    const channel = document.getElementById("romo-channel").value;
+    const cfg = window.priceProtectConfig[lang];
+    let outputPolicy = "", outputThought = "", outputScript = "";
+
+    // 1️⃣ 如果是其他渠道 → 直接输出结论模板
+    if (channel === "Other Channels") {
+        const policyData = cfg.policies[channel].within7; // 直接用其他渠道模板
+        outputPolicy  = policyData.policy || "";
+        outputThought = policyData.thought || "";
+        outputScript  = policyData.script || "";
+
+    // 2️⃣ 如果是官方商城 → 判断日期区间
+    } else {
+        const contactVal = document.getElementById("romo-contact-date").value;
+        if (!contactVal) {
+            alert("Please select customer contact date");
+            return;
+        }
+        const contactDate = new Date(contactVal);
+
+        const startDate = new Date(contactDate.getFullYear(), 10, 13); 
+        const endDate   = new Date(contactDate.getFullYear(), 11, 4); 
+
+if (contactDate >= startDate && contactDate <= endDate) {
+    const diff = actual - promo - romoVal;
+    outputPolicy = `
+    <div style="font-family:Arial,'Microsoft YaHei';line-height:1.6;margin-top:10px;">
+      <p><strong>Price Difference:</strong> <span style="color:#d9534f;">${diff.toFixed(2)}</span></p>
+      <table style="border-collapse:collapse;width:100%;background:#fff;">
+        <thead>
+          <tr style="background:#f2f2f2;">
+            <th style="border:1px solid #ccc;padding:8px;text-align:left;width:30%;">Price Match Policy</th>
+            <th style="border:1px solid #ccc;padding:8px;text-align:left;">Solution</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="border:1px solid #ccc;padding:8px;">Solution</td>
+            <td style="border:1px solid #ccc;padding:8px;">[Reply Template]</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ccc;padding:8px;vertical-align:top;">
+              Apply DJI Credit<br>or<br>Refund the price difference in cash<br><br>
+              <strong>Two Options</strong><br>
+              1. Provide DJI Credit for the price difference<br>
+              2. Provide Refund: Create a CRM case to arrange a refund for the price difference (<strong>cash</strong>)<br><br>
+
+            </td>
+            <td style="border:1px solid #ccc;padding:8px;vertical-align:top;">
+
+              Dear XXX, thank you for your trust. Please rest assured that we can offer you the price match in DJI Credit or a refund for the difference. Would you prefer DJI Credit or a cash refund for the difference?<br><br>
+              <u>Compensation in DJI Credit:</u> DJI Credit can be used to purchase any product from the official DJI Store (excluding shipping fees). DJI Credit will become effective approximately 15 days after the order is delivered. You can check your DJI Credit balance at <a href="https://my.dji.com/credit" target="_blank" style="color:#007bff;">https://my.dji.com/credit</a> at that time.<br><br>
+              <u>Cash Refund of Price Difference:</u> The price difference will be refunded to your original payment account within 2 to 7 business days.<br><br>
+              <em>Note:</em> <br>1. If a return occurs later, the DJI Credit compensation or price difference will be deducted from the refund amount.<br>
+              2. If the original order includes gift, the value of the gift will be subtracted from the price difference.
+            </td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ccc;padding:8px;vertical-align:top;">
+              For the orders includes ROMO Accessory Kit, the value of the gift will be subtracted from the price difference. If customer ask why the price difference is lower than expected.
+            </td>
+            <td style="border:1px solid #ccc;padding:8px;vertical-align:top;">
+              I understand your confusion regarding this matter. If the original order includes gift, its value will be deducted from the price difference. Since your order came with a <strong>ROMO Accessory Kit</strong>, that's why we need to deduct its value from the price difference. We really appreciate your understanding.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    `;
+}else {
+            // 不在活动期 → 拒绝价保
+            const denyPolicy = cfg.policies[channel].afterActivity;
+            outputPolicy  = denyPolicy.policy || "";
+            outputThought = denyPolicy.thought || "";
+            outputScript  = denyPolicy.script || "";
+        }
+    }
+
+    // 输出结果到页面
+    document.getElementById("romo-policy").innerHTML = outputPolicy;
+    document.getElementById("romo-thought").innerHTML = outputThought;
+    document.getElementById("romo-script").innerHTML = outputScript;
+    document.getElementById("romo-result").classList.remove("hidden");
+});
 
   const deliverGroup = deliverDate.parentElement;
   const applyGroup = applyDate.parentElement;
@@ -1202,6 +1463,8 @@ function switchLanguage(newLang){
     updateLabels();
     updateCopyButtonLink();
     resSection.classList.add("hidden");
+// 英语模式显示二级Tab，中文模式隐藏
+document.getElementById("en-subtabs").classList.toggle("hidden", lang !== "en");
 }
 
 btnZh.addEventListener("click",()=>{
@@ -1283,19 +1546,28 @@ document.getElementById("script").innerHTML = policy.script || "";
   resSection.classList.remove("hidden");
 });
 
-  tabs.forEach(tab=>{
+document.querySelectorAll('.top-tab').forEach(tab=>{
     tab.addEventListener("click",()=>{
-      tabs.forEach(t=>t.classList.remove("active"));
-      tab.classList.add("active");
-      if(tab.dataset.tab==="main"){
-        mainContent.classList.remove("hidden");
-        specialContent.classList.add("hidden");
-      }else{
-        mainContent.classList.add("hidden");
-        specialContent.classList.remove("hidden");
-      }
+        // 切换样式
+        document.querySelectorAll('.top-tab').forEach(t=>t.classList.remove("active"));
+        tab.classList.add("active");
+
+        if(tab.dataset.tab === "main"){ // Price Match
+            mainContent.classList.remove("hidden");
+            specialContent.classList.add("hidden");
+            // 英文模式显示二级标签，中文隐藏
+            document.getElementById("en-subtabs").classList.toggle("hidden", lang !== "en");
+            // 默认显示 Other products 表单
+            document.getElementById("other-products-form").classList.remove("hidden");
+            document.getElementById("romo-form").classList.add("hidden");
+        } else { // Special Cases
+            mainContent.classList.add("hidden");
+            specialContent.classList.remove("hidden");
+            // Special Cases 隐藏二级标签
+            document.getElementById("en-subtabs").classList.add("hidden");
+        }
     });
-  });
+});
 
 switchLanguage(lang); // lang 默认是 "zh"
 btnZh.style.background="#007bff";
